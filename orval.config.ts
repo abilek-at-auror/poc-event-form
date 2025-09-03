@@ -7,7 +7,7 @@ export default defineConfig({
       mode: 'split',
       target: './src/generated/events',
       client: 'react-query',
-      mock: false,
+      mock: true,
       override: {
         mutator: {
           path: './src/lib/api-client.ts',

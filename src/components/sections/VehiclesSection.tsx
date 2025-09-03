@@ -3,25 +3,24 @@ import { Button } from "@aurornz/lumos/Button";
 import { v4 as uuidv4 } from "uuid";
 import { AtomicInput } from "../ui/AtomicInput";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../lib/api-client";
+import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
 
 interface VehiclesSectionProps {
   eventId: string;
-  vehicles: any[];
 }
 
-export function VehiclesSection({
-  eventId,
-  vehicles = []
-}: VehiclesSectionProps) {
+export function VehiclesSection({ eventId }: VehiclesSectionProps) {
   const queryClient = useQueryClient();
+  
+  // Fetch event data to get current vehicles
+  const { data: event } = useGetEventsEventId(eventId);
+  const vehicles = event?.sections?.vehicles || [];
 
-  const updateEventMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await api.patch(`/events/${eventId}`, data);
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["events", eventId], data);
+  const updateEventMutation = usePatchEventsEventId({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.setQueryData(["events", eventId], data);
+      }
     }
   });
 
@@ -34,16 +33,22 @@ export function VehiclesSection({
     };
 
     updateEventMutation.mutate({
-      sections: {
-        vehicles: [...vehicles, newVehicle]
+      eventId,
+      data: {
+        sections: {
+          vehicles: [...vehicles, newVehicle]
+        }
       }
     });
   };
 
   const removeVehicle = (vehicleId: string) => {
     updateEventMutation.mutate({
-      sections: {
-        vehicles: vehicles.filter((v) => v.id !== vehicleId)
+      eventId,
+      data: {
+        sections: {
+          vehicles: vehicles.filter((v) => v.id !== vehicleId)
+        }
       }
     });
   };

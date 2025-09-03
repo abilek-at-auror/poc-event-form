@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api-client';
+import { usePatchEventsEventId } from '../generated/events/eventFormsAPI';
 
 interface UseAtomicFieldOptions {
   eventId: string;
@@ -25,30 +25,13 @@ export function useAtomicField({
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const debouncedSave = useDebouncedCallback(
-    async (value: any) => {
-      if (value === initialValue) return;
-
-      setIsUpdating(true);
-      setError(null);
-
-      try {
-        // Create nested object for the update
-        const updateData = setNestedValue({}, fieldPath, value);
-        
-        // Optimistic update
-        queryClient.setQueryData(['events', eventId], (old: any) => {
-          if (!old) return old;
-          return setNestedValue({ ...old }, fieldPath, value);
-        });
-
-        const responseData = await api.patch(`/events/${eventId}`, updateData);
-        
-        // Update cache with server response
-        queryClient.setQueryData(['events', eventId], responseData);
-        
-        onSuccess?.(responseData);
-      } catch (err: any) {
+  const patchEventMutation = usePatchEventsEventId({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.setQueryData(['events', eventId], data);
+        onSuccess?.(data);
+      },
+      onError: (err: any) => {
         // Revert optimistic update on error
         queryClient.setQueryData(['events', eventId], (old: any) => {
           if (!old) return old;
@@ -56,12 +39,37 @@ export function useAtomicField({
         });
         
         setLocalValue(initialValue);
-        const errorMessage = err.message || 'Failed to update field';
+        const errorMessage = err?.message || 'Failed to update field';
         setError(errorMessage);
         onError?.(err);
-      } finally {
+      },
+      onSettled: () => {
         setIsUpdating(false);
       }
+    }
+  });
+
+  const debouncedSave = useDebouncedCallback(
+    async (value: any) => {
+      if (value === initialValue) return;
+
+      setIsUpdating(true);
+      setError(null);
+
+      // Create nested object for the update
+      const updateData = setNestedValue({}, fieldPath, value);
+      
+      // Optimistic update
+      queryClient.setQueryData(['events', eventId], (old: any) => {
+        if (!old) return old;
+        return setNestedValue({ ...old }, fieldPath, value);
+      });
+
+      // Use the Orval-generated mutation
+      patchEventMutation.mutate({
+        eventId,
+        data: updateData
+      });
     },
     debounceMs
   );

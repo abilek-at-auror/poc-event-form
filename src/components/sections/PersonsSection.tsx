@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from "uuid";
 import { AtomicInput } from "../ui/AtomicInput";
 import { AtomicSelect } from "../ui/AtomicSelect";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../lib/api-client";
+import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
+import { useSectionValidation } from "../../hooks/useEventValidation";
 
 interface PersonsSectionProps {
   eventId: string;
-  persons: any[];
 }
 
 const roleOptions = [
@@ -18,15 +18,21 @@ const roleOptions = [
   { value: "employee", label: "Employee" }
 ];
 
-export function PersonsSection({ eventId, persons = [] }: PersonsSectionProps) {
+export function PersonsSection({ eventId }: PersonsSectionProps) {
   const queryClient = useQueryClient();
+  
+  // Fetch event data to get current persons
+  const { data: event } = useGetEventsEventId(eventId);
+  const persons = event?.sections?.persons || [];
 
-  const updateEventMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await api.patch(`/events/${eventId}`, data);
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["events", eventId], data);
+  // Section validation
+  const { isValid, errors } = useSectionValidation(eventId, 'persons');
+
+  const updateEventMutation = usePatchEventsEventId({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.setQueryData(["events", eventId], data);
+      }
     }
   });
 
@@ -39,16 +45,22 @@ export function PersonsSection({ eventId, persons = [] }: PersonsSectionProps) {
     };
 
     updateEventMutation.mutate({
-      sections: {
-        persons: [...persons, newPerson]
+      eventId,
+      data: {
+        sections: {
+          persons: [...persons, newPerson]
+        }
       }
     });
   };
 
   const removePerson = (personId: string) => {
     updateEventMutation.mutate({
-      sections: {
-        persons: persons.filter((p) => p.id !== personId)
+      eventId,
+      data: {
+        sections: {
+          persons: persons.filter((p) => p.id !== personId)
+        }
       }
     });
   };
@@ -56,9 +68,20 @@ export function PersonsSection({ eventId, persons = [] }: PersonsSectionProps) {
   return (
     <Card className="p-6 space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Persons Involved
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Persons Involved
+          </h3>
+          {errors.length > 0 && (
+            <div className="mt-1">
+              {errors.map((error, index) => (
+                <p key={index} className="text-sm text-red-600">
+                  {error}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
         <Button
           onClick={addPerson}
           disabled={updateEventMutation.isPending}

@@ -1,4 +1,5 @@
 import { useAtomicField } from "../../hooks/useAtomicField";
+import { useFieldValidation } from "../../hooks/useEventValidation";
 import clsx from "clsx";
 
 interface AtomicInputProps {
@@ -28,6 +29,10 @@ export function AtomicInput({
     initialValue
   });
 
+  // Real-time field validation
+  const { data: fieldValidation } = useFieldValidation(eventId, fieldPath, value);
+  const validationError = fieldValidation?.error;
+
   return (
     <div className={clsx("field-group", className)}>
       <label className="label">
@@ -47,11 +52,19 @@ export function AtomicInput({
         placeholder={placeholder}
         className={clsx(
           "input",
-          error && "border-red-500 focus:border-red-500 focus:ring-red-500",
+          (error || validationError) && "border-red-500 focus:border-red-500 focus:ring-red-500",
+          fieldValidation?.isValid === true && value && "border-green-500 focus:border-green-500 focus:ring-green-500",
           isUpdating && "bg-gray-50"
         )}
       />
-      {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+      {(error || validationError) && (
+        <p className="text-sm text-red-600 mt-1">
+          {error || validationError}
+        </p>
+      )}
+      {fieldValidation?.isValid === true && value && !error && !validationError && (
+        <p className="text-sm text-green-600 mt-1">✓ Valid</p>
+      )}
     </div>
   );
 }

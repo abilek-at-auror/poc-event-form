@@ -3,25 +3,28 @@ import { Button } from "@aurornz/lumos/Button";
 import { v4 as uuidv4 } from "uuid";
 import { AtomicInput } from "../ui/AtomicInput";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../lib/api-client";
+import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
+import { useSectionValidation } from "../../hooks/useEventValidation";
 
 interface ProductsSectionProps {
   eventId: string;
-  products: any[];
 }
 
-export function ProductsSection({
-  eventId,
-  products = []
-}: ProductsSectionProps) {
+export function ProductsSection({ eventId }: ProductsSectionProps) {
   const queryClient = useQueryClient();
+  
+  // Fetch event data to get current products
+  const { data: event } = useGetEventsEventId(eventId);
+  const products = event?.sections?.products || [];
 
-  const updateEventMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await api.patch(`/events/${eventId}`, data);
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["events", eventId], data);
+  // Section validation
+  const { isValid, errors } = useSectionValidation(eventId, 'products');
+
+  const updateEventMutation = usePatchEventsEventId({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.setQueryData(["events", eventId], data);
+      }
     }
   });
 
@@ -35,16 +38,22 @@ export function ProductsSection({
     };
 
     updateEventMutation.mutate({
-      sections: {
-        products: [...products, newProduct]
+      eventId,
+      data: {
+        sections: {
+          products: [...products, newProduct]
+        }
       }
     });
   };
 
   const removeProduct = (productId: string) => {
     updateEventMutation.mutate({
-      sections: {
-        products: products.filter((p) => p.id !== productId)
+      eventId,
+      data: {
+        sections: {
+          products: products.filter((p) => p.id !== productId)
+        }
       }
     });
   };
@@ -52,9 +61,20 @@ export function ProductsSection({
   return (
     <Card className="p-6 space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Products Involved
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Products Involved
+          </h3>
+          {errors.length > 0 && (
+            <div className="mt-1">
+              {errors.map((error, index) => (
+                <p key={index} className="text-sm text-red-600">
+                  {error}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
         <Button
           onClick={addProduct}
           disabled={updateEventMutation.isPending}

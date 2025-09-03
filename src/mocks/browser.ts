@@ -6,6 +6,19 @@ import {
   getPatchEventsEventIdMockHandler,
   getPostEventsEventIdPublishMockHandler,
   getPostEventsEventIdValidateMockHandler,
+  // Section-specific handlers
+  getGetEventsEventIdPersonsMockHandler,
+  getPostEventsEventIdPersonsMockHandler,
+  getPutEventsEventIdPersonsPersonIdMockHandler,
+  getDeleteEventsEventIdPersonsPersonIdMockHandler,
+  getGetEventsEventIdVehiclesMockHandler,
+  getPostEventsEventIdVehiclesMockHandler,
+  getPutEventsEventIdVehiclesVehicleIdMockHandler,
+  getDeleteEventsEventIdVehiclesVehicleIdMockHandler,
+  getGetEventsEventIdProductsMockHandler,
+  getPostEventsEventIdProductsMockHandler,
+  getPutEventsEventIdProductsProductIdMockHandler,
+  getDeleteEventsEventIdProductsProductIdMockHandler,
 } from '../generated/events/eventFormsAPI.msw';
 import { SectionConfigSectionId } from '../generated/events/eventFormsAPI.schemas';
 
@@ -148,12 +161,13 @@ const handlers = [
     
     // Merge the update data with existing data
     const currentEvent = mockEventStore[eventId];
+    const updateDataObj = updateData as any;
     const mergedData = {
       ...currentEvent,
-      ...updateData,
+      ...updateDataObj,
       sections: {
         ...currentEvent.sections,
-        ...updateData.sections
+        ...(updateDataObj.sections || {})
       }
     };
     
@@ -165,10 +179,195 @@ const handlers = [
   }),
   getPostEventsEventIdPublishMockHandler(),
   getPostEventsEventIdValidateMockHandler(),
+
+  // Section-specific handlers with persistence
+  // Persons endpoints
+  getGetEventsEventIdPersonsMockHandler((info) => {
+    const eventId = info.params.eventId as string;
+    const persons = mockSectionStore.persons[eventId] || [];
+    console.log('🔍 GET Persons Mock - Returning:', persons);
+    return persons;
+  }),
+
+  getPostEventsEventIdPersonsMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const personData = await info.request.json() as any;
+    const newPerson = {
+      id: `person-${Date.now()}`,
+      ...personData
+    };
+    
+    if (!mockSectionStore.persons[eventId]) {
+      mockSectionStore.persons[eventId] = [];
+    }
+    mockSectionStore.persons[eventId].push(newPerson);
+    
+    console.log('✅ POST Person Mock - Added:', newPerson);
+    return newPerson;
+  }),
+
+  getPutEventsEventIdPersonsPersonIdMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const personId = info.params.personId as string;
+    const updateData = await info.request.json() as any;
+    
+    if (!mockSectionStore.persons[eventId]) {
+      mockSectionStore.persons[eventId] = [];
+    }
+    
+    const personIndex = mockSectionStore.persons[eventId].findIndex(p => p.id === personId);
+    if (personIndex >= 0) {
+      mockSectionStore.persons[eventId][personIndex] = {
+        ...mockSectionStore.persons[eventId][personIndex],
+        ...updateData
+      };
+      console.log('🔄 PUT Person Mock - Updated:', mockSectionStore.persons[eventId][personIndex]);
+      return mockSectionStore.persons[eventId][personIndex];
+    }
+    
+    return null;
+  }),
+
+  getDeleteEventsEventIdPersonsPersonIdMockHandler((info) => {
+    const eventId = info.params.eventId as string;
+    const personId = info.params.personId as string;
+    
+    if (mockSectionStore.persons[eventId]) {
+      mockSectionStore.persons[eventId] = mockSectionStore.persons[eventId].filter(p => p.id !== personId);
+      console.log('🗑️ DELETE Person Mock - Removed person:', personId);
+    }
+    
+    return null;
+  }),
+
+  // Vehicles endpoints
+  getGetEventsEventIdVehiclesMockHandler((info) => {
+    const eventId = info.params.eventId as string;
+    const vehicles = mockSectionStore.vehicles[eventId] || [];
+    console.log('🔍 GET Vehicles Mock - Returning:', vehicles);
+    return vehicles;
+  }),
+
+  getPostEventsEventIdVehiclesMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const vehicleData = await info.request.json() as any;
+    const newVehicle = {
+      id: `vehicle-${Date.now()}`,
+      ...vehicleData
+    };
+    
+    if (!mockSectionStore.vehicles[eventId]) {
+      mockSectionStore.vehicles[eventId] = [];
+    }
+    mockSectionStore.vehicles[eventId].push(newVehicle);
+    
+    console.log('✅ POST Vehicle Mock - Added:', newVehicle);
+    return newVehicle;
+  }),
+
+  getPutEventsEventIdVehiclesVehicleIdMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const vehicleId = info.params.vehicleId as string;
+    const updateData = await info.request.json() as any;
+    
+    if (!mockSectionStore.vehicles[eventId]) {
+      mockSectionStore.vehicles[eventId] = [];
+    }
+    
+    const vehicleIndex = mockSectionStore.vehicles[eventId].findIndex(v => v.id === vehicleId);
+    if (vehicleIndex >= 0) {
+      mockSectionStore.vehicles[eventId][vehicleIndex] = {
+        ...mockSectionStore.vehicles[eventId][vehicleIndex],
+        ...updateData
+      };
+      console.log('🔄 PUT Vehicle Mock - Updated:', mockSectionStore.vehicles[eventId][vehicleIndex]);
+      return mockSectionStore.vehicles[eventId][vehicleIndex];
+    }
+    
+    return null;
+  }),
+
+  getDeleteEventsEventIdVehiclesVehicleIdMockHandler((info) => {
+    const eventId = info.params.eventId as string;
+    const vehicleId = info.params.vehicleId as string;
+    
+    if (mockSectionStore.vehicles[eventId]) {
+      mockSectionStore.vehicles[eventId] = mockSectionStore.vehicles[eventId].filter(v => v.id !== vehicleId);
+      console.log('🗑️ DELETE Vehicle Mock - Removed vehicle:', vehicleId);
+    }
+    
+    return null;
+  }),
+
+  // Products endpoints
+  getGetEventsEventIdProductsMockHandler((info) => {
+    const eventId = info.params.eventId as string;
+    const products = mockSectionStore.products[eventId] || [];
+    console.log('🔍 GET Products Mock - Returning:', products);
+    return products;
+  }),
+
+  getPostEventsEventIdProductsMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const productData = await info.request.json() as any;
+    const newProduct = {
+      id: `product-${Date.now()}`,
+      ...productData
+    };
+    
+    if (!mockSectionStore.products[eventId]) {
+      mockSectionStore.products[eventId] = [];
+    }
+    mockSectionStore.products[eventId].push(newProduct);
+    
+    console.log('✅ POST Product Mock - Added:', newProduct);
+    return newProduct;
+  }),
+
+  getPutEventsEventIdProductsProductIdMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const productId = info.params.productId as string;
+    const updateData = await info.request.json() as any;
+    
+    if (!mockSectionStore.products[eventId]) {
+      mockSectionStore.products[eventId] = [];
+    }
+    
+    const productIndex = mockSectionStore.products[eventId].findIndex(p => p.id === productId);
+    if (productIndex >= 0) {
+      mockSectionStore.products[eventId][productIndex] = {
+        ...mockSectionStore.products[eventId][productIndex],
+        ...updateData
+      };
+      console.log('🔄 PUT Product Mock - Updated:', mockSectionStore.products[eventId][productIndex]);
+      return mockSectionStore.products[eventId][productIndex];
+    }
+    
+    return null;
+  }),
+
+  getDeleteEventsEventIdProductsProductIdMockHandler((info) => {
+    const eventId = info.params.eventId as string;
+    const productId = info.params.productId as string;
+    
+    if (mockSectionStore.products[eventId]) {
+      mockSectionStore.products[eventId] = mockSectionStore.products[eventId].filter(p => p.id !== productId);
+      console.log('🗑️ DELETE Product Mock - Removed product:', productId);
+    }
+    
+    return null;
+  }),
 ];
 
 // Simple in-memory store for mock data persistence
 const mockEventStore: Record<string, any> = {};
+
+// Section-specific stores for REST endpoints
+const mockSectionStore = {
+  persons: {} as Record<string, any[]>,
+  vehicles: {} as Record<string, any[]>,
+  products: {} as Record<string, any[]>,
+};
 
 console.log('🔧 Setting up MSW worker with', handlers.length, 'generated handlers');
 

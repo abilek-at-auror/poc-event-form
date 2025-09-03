@@ -1,61 +1,40 @@
+import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
-import { v4 as uuidv4 } from "uuid";
-import { AtomicInput } from "../ui/AtomicInput";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
-import type { ProductInvolved } from "../../generated/events/eventFormsAPI.schemas";
+import { AtomicProductInput } from "../ui/AtomicProductInput";
+import { 
+  useGetEventsEventIdProducts, 
+  useDeleteEventsEventIdProductsProductId
+} from "../../generated/events/eventFormsAPI";
 import { useSectionValidation } from "../../hooks/useEventValidation";
+import { AddProductModal } from "./AddProductModal";
 
 interface ProductsSectionProps {
   eventId: string;
 }
 
 export function ProductsSection({ eventId }: ProductsSectionProps) {
-  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Fetch event data to get current products
-  const { data: event } = useGetEventsEventId(eventId);
-  const products = event?.sections?.products || [];
+  // Fetch products data directly from section endpoint
+  const { data: products = [] } = useGetEventsEventIdProducts(eventId);
 
   // Section validation
-  const { isValid, errors } = useSectionValidation(eventId, 'products');
+  const { errors } = useSectionValidation(eventId, 'products');
 
-  const updateEventMutation = usePatchEventsEventId({
+  // Mutation for deleting products
+  const deleteProductMutation = useDeleteEventsEventIdProductsProductId({
     mutation: {
-      onSuccess: (data) => {
-        queryClient.setQueryData(["events", eventId], data);
+      onSuccess: () => {
+        // React Query will automatically invalidate and refetch the products list
       }
     }
   });
 
-  const addProduct = () => {
-    const newProduct = {
-      id: uuidv4(),
-      name: "",
-      sku: "",
-      quantity: 1,
-      unitValue: 0
-    };
-
-    updateEventMutation.mutate({
-      eventId,
-      data: {
-        sections: {
-          products: [...products, newProduct]
-        }
-      }
-    });
-  };
-
   const removeProduct = (productId: string) => {
-    updateEventMutation.mutate({
+    deleteProductMutation.mutate({
       eventId,
-      data: {
-        sections: {
-          products: products.filter((p) => p.id !== productId)
-        }
-      }
+      productId
     });
   };
 
@@ -77,8 +56,7 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
           )}
         </div>
         <Button
-          onClick={addProduct}
-          disabled={updateEventMutation.isPending}
+          onClick={() => setIsModalOpen(true)}
         >
           + Add Product
         </Button>
@@ -101,8 +79,8 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
                   Product {index + 1}
                 </h4>
                 <button
-                  onClick={() => removeProduct(product.id)}
-                  disabled={updateEventMutation.isPending}
+                  onClick={() => removeProduct(product.id!)}
+                  disabled={deleteProductMutation.isPending}
                   className="text-red-600 hover:text-red-700 text-sm px-2 py-1 rounded"
                 >
                   Remove
@@ -110,26 +88,29 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <AtomicInput
+                <AtomicProductInput
                   eventId={eventId}
-                  fieldPath={`sections.products.${index}.name`}
+                  productId={product.id!}
+                  fieldName="name"
                   initialValue={product.name || ""}
                   label="Product Name"
                   placeholder="Enter product name"
                   required
                 />
 
-                <AtomicInput
+                <AtomicProductInput
                   eventId={eventId}
-                  fieldPath={`sections.products.${index}.sku`}
+                  productId={product.id!}
+                  fieldName="sku"
                   initialValue={product.sku || ""}
                   label="SKU"
                   placeholder="Enter SKU"
                 />
 
-                <AtomicInput
+                <AtomicProductInput
                   eventId={eventId}
-                  fieldPath={`sections.products.${index}.quantity`}
+                  productId={product.id!}
+                  fieldName="quantity"
                   initialValue={product.quantity || 1}
                   label="Quantity"
                   placeholder="Enter quantity"
@@ -137,9 +118,10 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
                   required
                 />
 
-                <AtomicInput
+                <AtomicProductInput
                   eventId={eventId}
-                  fieldPath={`sections.products.${index}.unitValue`}
+                  productId={product.id!}
+                  fieldName="unitValue"
                   initialValue={product.unitValue || 0}
                   label="Unit Value ($)"
                   placeholder="0.00"
@@ -161,6 +143,12 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
           ))}
         </div>
       )}
+
+      <AddProductModal
+        eventId={eventId}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Card>
   );
 }

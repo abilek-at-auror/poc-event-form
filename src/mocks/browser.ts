@@ -74,8 +74,16 @@ const handlers = [
   }),
   
   getGetEventsEventIdMockHandler((info) => {
-    return {
-      id: info.params.eventId as string,
+    const eventId = info.params.eventId as string;
+    
+    // Return from store if exists, otherwise return default
+    if (mockEventStore[eventId]) {
+      console.log('🔍 GET Event Mock - Returning from store:', mockEventStore[eventId]);
+      return mockEventStore[eventId];
+    }
+    
+    const defaultEvent = {
+      id: eventId,
       eventType: 'shoplifting', // Default for testing
       organizationId: 'org-123',
       siteId: 'site-456',
@@ -97,11 +105,70 @@ const handlers = [
         errorCount: 0
       }
     };
+    
+    // Store it for future requests
+    mockEventStore[eventId] = defaultEvent;
+    console.log('🔍 GET Event Mock - Returning default:', defaultEvent);
+    return defaultEvent;
   }),
-  getPatchEventsEventIdMockHandler(),
+  
+  // Override PATCH handler to properly merge updates (using generated mock as base)
+  getPatchEventsEventIdMockHandler(async (info) => {
+    const eventId = info.params.eventId as string;
+    const updateData = await info.request.json();
+    
+    console.log('🔄 PATCH Event Mock - Received update:', updateData);
+    
+    // Get existing event from store or create default
+    if (!mockEventStore[eventId]) {
+      mockEventStore[eventId] = {
+        id: eventId,
+        eventType: 'shoplifting', // Default for testing
+        organizationId: 'org-123',
+        siteId: 'site-456',
+        status: 'draft',
+        metadata: {
+          title: '',
+          description: '',
+          priority: 'medium',
+          occurredAt: new Date().toISOString()
+        },
+        sections: {
+          persons: [],
+          vehicles: [],
+          products: []
+        },
+        validation: {
+          isValid: false,
+          canPublish: false,
+          errorCount: 0
+        }
+      };
+    }
+    
+    // Merge the update data with existing data
+    const currentEvent = mockEventStore[eventId];
+    const mergedData = {
+      ...currentEvent,
+      ...updateData,
+      sections: {
+        ...currentEvent.sections,
+        ...updateData.sections
+      }
+    };
+    
+    // Update the store
+    mockEventStore[eventId] = mergedData;
+    
+    console.log('🔄 PATCH Event Mock - Returning merged data:', mergedData);
+    return mergedData;
+  }),
   getPostEventsEventIdPublishMockHandler(),
   getPostEventsEventIdValidateMockHandler(),
 ];
+
+// Simple in-memory store for mock data persistence
+const mockEventStore: Record<string, any> = {};
 
 console.log('🔧 Setting up MSW worker with', handlers.length, 'generated handlers');
 

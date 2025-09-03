@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
-import { v4 as uuidv4 } from "uuid";
 import { AtomicInput } from "../ui/AtomicInput";
 import { AtomicSelect } from "../ui/AtomicSelect";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
+import type { PersonInvolved } from "../../generated/events/eventFormsAPI.schemas";
 import { useSectionValidation } from "../../hooks/useEventValidation";
+import { AddPersonModal } from "./AddPersonModal";
 
 interface PersonsSectionProps {
   eventId: string;
@@ -20,13 +22,14 @@ const roleOptions = [
 
 export function PersonsSection({ eventId }: PersonsSectionProps) {
   const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Fetch event data to get current persons
   const { data: event } = useGetEventsEventId(eventId);
   const persons = event?.sections?.persons || [];
 
   // Section validation
-  const { isValid, errors } = useSectionValidation(eventId, 'persons');
+  const { errors } = useSectionValidation(eventId, 'persons');
 
   const updateEventMutation = usePatchEventsEventId({
     mutation: {
@@ -36,14 +39,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
     }
   });
 
-  const addPerson = () => {
-    const newPerson = {
-      id: uuidv4(),
-      name: "",
-      role: "",
-      age: ""
-    };
-
+  const handleAddPerson = (newPerson: PersonInvolved) => {
     updateEventMutation.mutate({
       eventId,
       data: {
@@ -83,7 +79,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
           )}
         </div>
         <Button
-          onClick={addPerson}
+          onClick={() => setIsModalOpen(true)}
           disabled={updateEventMutation.isPending}
         >
           + Add Person
@@ -107,7 +103,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
                   Person {index + 1}
                 </h4>
                 <button
-                  onClick={() => removePerson(person.id)}
+                  onClick={() => removePerson(person.id!)}
                   disabled={updateEventMutation.isPending}
                   className="text-red-600 hover:text-red-700 text-sm px-2 py-1 rounded"
                 >
@@ -137,7 +133,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
                 <AtomicInput
                   eventId={eventId}
                   fieldPath={`sections.persons.${index}.age`}
-                  initialValue={person.age || ""}
+                  initialValue={person.age?.toString() || ""}
                   label="Age"
                   placeholder="Enter age"
                   type="number"
@@ -147,6 +143,12 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
           ))}
         </div>
       )}
+
+      <AddPersonModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleAddPerson}
+      />
     </Card>
   );
 }

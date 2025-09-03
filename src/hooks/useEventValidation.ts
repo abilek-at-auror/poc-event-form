@@ -27,8 +27,19 @@ export function useEventValidation({ eventId, enabled = true }: UseEventValidati
 
   // Memoized validation summary for UI
   const validationSummary = useMemo(() => {
-    if (!event || !event.id || !event.eventType) return null;
-    return getValidationSummary(event);
+    if (!event || !event.id || !event.eventType) {
+      console.log('Event validation check failed:', { event: !!event, id: event?.id, eventType: event?.eventType });
+      return null;
+    }
+    try {
+      console.log('Event structure for validation:', event);
+      const summary = getValidationSummary(event);
+      console.log('Validation summary generated:', summary);
+      return summary;
+    } catch (error) {
+      console.error('Error generating validation summary:', error, event);
+      return null;
+    }
   }, [event]);
 
   // Section-specific validation

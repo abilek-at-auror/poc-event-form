@@ -6,8 +6,14 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
-      staleTime: 5 * 60 * 1000 // 5 minutes
-    }
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours - keep in cache for persistence
+    },
+    mutations: {
+      retry: 1,
+      // Enable optimistic updates globally
+      networkMode: 'offlineFirst',
+    },
   }
 });
 

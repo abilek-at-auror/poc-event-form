@@ -218,7 +218,6 @@ export default function EventFormDemo() {
           ))}
 
           {/* Validation and Publish Section */}
-          {console.log('Rendering ValidationStatus with eventId:', draftEventId)}
           <ValidationStatus eventId={draftEventId} />
         </div>
       )}

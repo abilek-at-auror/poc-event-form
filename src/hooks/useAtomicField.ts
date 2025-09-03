@@ -27,24 +27,45 @@ export function useAtomicField({
 
   const patchEventMutation = usePatchEventsEventId({
     mutation: {
+      // React Query's built-in optimistic updates
+      onMutate: async (variables) => {
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({ queryKey: ['events', eventId] });
+        
+        // Snapshot previous value for rollback
+        const previousEvent = queryClient.getQueryData(['events', eventId]);
+        
+        // Optimistically update cache
+        queryClient.setQueryData(['events', eventId], (old: any) => {
+          if (!old) return old;
+          return { ...old, ...variables.data };
+        });
+        
+        return { previousEvent };
+      },
+      
       onSuccess: (data) => {
+        // Server response updates cache automatically
         queryClient.setQueryData(['events', eventId], data);
         onSuccess?.(data);
       },
-      onError: (err: any) => {
-        // Revert optimistic update on error
-        queryClient.setQueryData(['events', eventId], (old: any) => {
-          if (!old) return old;
-          return setNestedValue({ ...old }, fieldPath, initialValue);
-        });
+      
+      onError: (err: any, _variables, context) => {
+        // React Query's automatic rollback
+        if (context?.previousEvent) {
+          queryClient.setQueryData(['events', eventId], context.previousEvent);
+        }
         
         setLocalValue(initialValue);
         const errorMessage = err?.message || 'Failed to update field';
         setError(errorMessage);
         onError?.(err);
       },
+      
       onSettled: () => {
         setIsUpdating(false);
+        // Refetch to ensure consistency
+        queryClient.invalidateQueries({ queryKey: ['events', eventId] });
       }
     }
   });

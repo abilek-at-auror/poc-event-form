@@ -51,6 +51,9 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-600">
             Loading validation status...
+            {event
+              ? " (event loaded, processing validation)"
+              : " (loading event data)"}
           </span>
         </div>
       </Card>

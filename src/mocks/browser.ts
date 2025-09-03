@@ -45,9 +45,59 @@ const handlers = [
     return configs[eventType as keyof typeof configs] || configs.shoplifting;
   }),
   
-  // Other handlers with default generated responses
-  getPostEventsMockHandler(),
-  getGetEventsEventIdMockHandler(),
+  // Custom handlers with proper data structure
+  getPostEventsMockHandler((info) => {
+    const body = info.request.body as any;
+    return {
+      id: `event-${Date.now()}`,
+      eventType: body.eventType,
+      organizationId: body.organizationId,
+      siteId: body.siteId,
+      status: 'draft',
+      metadata: {
+        title: '',
+        description: '',
+        priority: 'medium',
+        occurredAt: new Date().toISOString()
+      },
+      sections: {
+        persons: [],
+        vehicles: [],
+        products: []
+      },
+      validation: {
+        isValid: false,
+        canPublish: false,
+        errorCount: 0
+      }
+    };
+  }),
+  
+  getGetEventsEventIdMockHandler((info) => {
+    return {
+      id: info.params.eventId as string,
+      eventType: 'shoplifting', // Default for testing
+      organizationId: 'org-123',
+      siteId: 'site-456',
+      status: 'draft',
+      metadata: {
+        title: '',
+        description: '',
+        priority: 'medium',
+        occurredAt: new Date().toISOString()
+      },
+      sections: {
+        persons: [],
+        vehicles: [],
+        products: []
+      },
+      validation: {
+        isValid: false,
+        canPublish: false,
+        errorCount: 0
+      }
+    };
+  }),
   getPatchEventsEventIdMockHandler(),
   getPostEventsEventIdPublishMockHandler(),
   getPostEventsEventIdValidateMockHandler(),

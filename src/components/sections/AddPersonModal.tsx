@@ -2,15 +2,18 @@ import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
 import { v4 as uuidv4 } from "uuid";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePostEventsEventIdPersons } from "../../generated/events/eventFormsAPI";
 import type {
   PersonInvolved,
   PersonInvolvedRole
 } from "../../generated/events/eventFormsAPI.schemas";
 
 interface AddPersonModalProps {
+  eventId: string;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (person: PersonInvolved) => void;
+  onSuccess?: () => void; // Optional callback after successful save
 }
 
 const roleOptions = [
@@ -21,31 +24,52 @@ const roleOptions = [
 ];
 
 export function AddPersonModal({
+  eventId,
   isOpen,
   onClose,
-  onSave
+  onSuccess
 }: AddPersonModalProps) {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: "",
     role: "suspect" as PersonInvolvedRole,
     age: ""
   });
 
+  // Mutation for adding person
+  const addPersonMutation = usePostEventsEventIdPersons({
+    mutation: {
+      onSuccess: (data) => {
+        // React Query will automatically invalidate and refetch the persons list
+
+        // Reset form
+        setFormData({ name: "", role: "suspect", age: "" });
+
+        // Close modal
+        onClose();
+
+        // Optional success callback
+        onSuccess?.();
+      },
+      onError: (error) => {
+        console.error("Failed to add person:", error);
+        // Could add error handling UI here
+      }
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newPerson: PersonInvolved = {
-      id: uuidv4(),
-      name: formData.name,
-      role: formData.role,
-      age: formData.age ? parseInt(formData.age) : 0
-    };
-
-    onSave(newPerson);
-
-    // Reset form
-    setFormData({ name: "", role: "suspect", age: "" });
-    onClose();
+    // Use mutation to add person - the backend will assign the ID
+    addPersonMutation.mutate({
+      eventId,
+      data: {
+        name: formData.name,
+        role: formData.role,
+        age: formData.age ? parseInt(formData.age) : 0
+      }
+    });
   };
 
   if (!isOpen) return null;
@@ -126,8 +150,11 @@ export function AddPersonModal({
             <Button type="button" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!formData.name.trim()}>
-              Add Person
+            <Button
+              type="submit"
+              disabled={!formData.name.trim() || addPersonMutation.isPending}
+            >
+              {addPersonMutation.isPending ? "Adding..." : "Add Person"}
             </Button>
           </div>
         </form>

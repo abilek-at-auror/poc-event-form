@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
-import { AtomicInput } from "../ui/AtomicInput";
-import { AtomicSelect } from "../ui/AtomicSelect";
-import { useQueryClient } from "@tanstack/react-query";
-import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
-import type { PersonInvolved } from "../../generated/events/eventFormsAPI.schemas";
+import { AtomicPersonInput } from "../ui/AtomicPersonInput";
+import { AtomicPersonSelect } from "../ui/AtomicPersonSelect";
+import { 
+  useGetEventsEventIdPersons, 
+  useDeleteEventsEventIdPersonsPersonId
+} from "../../generated/events/eventFormsAPI";
 import { useSectionValidation } from "../../hooks/useEventValidation";
 import { AddPersonModal } from "./AddPersonModal";
 
@@ -21,43 +22,27 @@ const roleOptions = [
 ];
 
 export function PersonsSection({ eventId }: PersonsSectionProps) {
-  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Fetch event data to get current persons
-  const { data: event } = useGetEventsEventId(eventId);
-  const persons = event?.sections?.persons || [];
+  // Fetch persons data directly from section endpoint
+  const { data: persons = [] } = useGetEventsEventIdPersons(eventId);
 
   // Section validation
   const { errors } = useSectionValidation(eventId, 'persons');
 
-  const updateEventMutation = usePatchEventsEventId({
+  // Mutation for deleting persons
+  const deletePersonMutation = useDeleteEventsEventIdPersonsPersonId({
     mutation: {
-      onSuccess: (data) => {
-        queryClient.setQueryData(["events", eventId], data);
+      onSuccess: () => {
+        // React Query will automatically invalidate and refetch the persons list
       }
     }
   });
 
-  const handleAddPerson = (newPerson: PersonInvolved) => {
-    updateEventMutation.mutate({
-      eventId,
-      data: {
-        sections: {
-          persons: [...persons, newPerson]
-        }
-      }
-    });
-  };
-
   const removePerson = (personId: string) => {
-    updateEventMutation.mutate({
+    deletePersonMutation.mutate({
       eventId,
-      data: {
-        sections: {
-          persons: persons.filter((p) => p.id !== personId)
-        }
-      }
+      personId
     });
   };
 
@@ -80,7 +65,6 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
         </div>
         <Button
           onClick={() => setIsModalOpen(true)}
-          disabled={updateEventMutation.isPending}
         >
           + Add Person
         </Button>
@@ -104,7 +88,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
                 </h4>
                 <button
                   onClick={() => removePerson(person.id!)}
-                  disabled={updateEventMutation.isPending}
+                  disabled={deletePersonMutation.isPending}
                   className="text-red-600 hover:text-red-700 text-sm px-2 py-1 rounded"
                 >
                   Remove
@@ -112,28 +96,30 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <AtomicInput
+                <AtomicPersonInput
                   eventId={eventId}
-                  fieldPath={`sections.persons.${index}.name`}
+                  personId={person.id!}
+                  fieldName="name"
                   initialValue={person.name || ""}
                   label="Full Name"
                   placeholder="Enter full name"
                   required
                 />
 
-                <AtomicSelect
+                <AtomicPersonSelect
                   eventId={eventId}
-                  fieldPath={`sections.persons.${index}.role`}
+                  personId={person.id!}
                   initialValue={person.role || ""}
                   label="Role"
                   options={roleOptions}
                   required
                 />
 
-                <AtomicInput
+                <AtomicPersonInput
                   eventId={eventId}
-                  fieldPath={`sections.persons.${index}.age`}
-                  initialValue={person.age?.toString() || ""}
+                  personId={person.id!}
+                  fieldName="age"
+                  initialValue={person.age || 0}
                   label="Age"
                   placeholder="Enter age"
                   type="number"
@@ -145,9 +131,9 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
       )}
 
       <AddPersonModal
+        eventId={eventId}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleAddPerson}
       />
     </Card>
   );

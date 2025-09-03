@@ -139,5 +139,55 @@ export interface ValidationIssue {
   severity?: ValidationIssueSeverity;
 }
 
+export interface CreatePersonRequest {
+  name: string;
+  role: PersonInvolvedRole;
+  /**
+   * @minimum 0
+   * @maximum 150
+   */
+  age?: number;
+}
+
+export interface UpdatePersonRequest {
+  name?: string;
+  role?: PersonInvolvedRole;
+  /**
+   * @minimum 0
+   * @maximum 150
+   */
+  age?: number;
+}
+
+export interface CreateVehicleRequest {
+  make: string;
+  model: string;
+  licensePlate?: string;
+}
+
+export interface UpdateVehicleRequest {
+  make?: string;
+  model?: string;
+  licensePlate?: string;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  sku: string;
+  /** @minimum 1 */
+  quantity?: number;
+  /** @minimum 0 */
+  unitValue?: number;
+}
+
+export interface UpdateProductRequest {
+  name?: string;
+  sku?: string;
+  /** @minimum 1 */
+  quantity?: number;
+  /** @minimum 0 */
+  unitValue?: number;
+}
+
 export type PatchEventsEventIdBody = { [key: string]: unknown };
 

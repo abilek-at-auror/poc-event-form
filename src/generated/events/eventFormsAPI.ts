@@ -25,10 +25,19 @@ import type {
 
 import type {
   CreateEventRequest,
+  CreatePersonRequest,
+  CreateProductRequest,
+  CreateVehicleRequest,
   EventResponse,
   EventTypeConfig,
   PatchEventsEventIdBody,
-  ValidationResponse
+  PersonInvolved,
+  ProductInvolved,
+  UpdatePersonRequest,
+  UpdateProductRequest,
+  UpdateVehicleRequest,
+  ValidationResponse,
+  VehicleInvolved
 } from './eventFormsAPI.schemas';
 
 import { apiClient } from '../../lib/api-client';
@@ -464,6 +473,1140 @@ export const usePostEventsEventIdValidate = <TError = unknown,
       > => {
 
       const mutationOptions = getPostEventsEventIdValidateMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Get all persons for an event
+ */
+export const getEventsEventIdPersons = (
+    eventId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<PersonInvolved[]>(
+      {url: `/events/${eventId}/persons`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetEventsEventIdPersonsQueryKey = (eventId?: string,) => {
+    return [`/events/${eventId}/persons`] as const;
+    }
+
+    
+export const getGetEventsEventIdPersonsQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError = unknown>(eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventsEventIdPersonsQueryKey(eventId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIdPersons>>> = ({ signal }) => getEventsEventIdPersons(eventId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(eventId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventsEventIdPersonsQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIdPersons>>>
+export type GetEventsEventIdPersonsQueryError = unknown
+
+
+export function useGetEventsEventIdPersons<TData = Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError = unknown>(
+ eventId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdPersons>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdPersons>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdPersons<TData = Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdPersons>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdPersons>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdPersons<TData = Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get all persons for an event
+ */
+
+export function useGetEventsEventIdPersons<TData = Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersons>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventsEventIdPersonsQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Add a new person to an event
+ */
+export const postEventsEventIdPersons = (
+    eventId: string,
+    createPersonRequest: CreatePersonRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<PersonInvolved>(
+      {url: `/events/${eventId}/persons`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPersonRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostEventsEventIdPersonsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdPersons>>, TError,{eventId: string;data: CreatePersonRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdPersons>>, TError,{eventId: string;data: CreatePersonRequest}, TContext> => {
+
+const mutationKey = ['postEventsEventIdPersons'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postEventsEventIdPersons>>, {eventId: string;data: CreatePersonRequest}> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  postEventsEventIdPersons(eventId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostEventsEventIdPersonsMutationResult = NonNullable<Awaited<ReturnType<typeof postEventsEventIdPersons>>>
+    export type PostEventsEventIdPersonsMutationBody = CreatePersonRequest
+    export type PostEventsEventIdPersonsMutationError = unknown
+
+    /**
+ * @summary Add a new person to an event
+ */
+export const usePostEventsEventIdPersons = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdPersons>>, TError,{eventId: string;data: CreatePersonRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postEventsEventIdPersons>>,
+        TError,
+        {eventId: string;data: CreatePersonRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostEventsEventIdPersonsMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Get a specific person
+ */
+export const getEventsEventIdPersonsPersonId = (
+    eventId: string,
+    personId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<PersonInvolved>(
+      {url: `/events/${eventId}/persons/${personId}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetEventsEventIdPersonsPersonIdQueryKey = (eventId?: string,
+    personId?: string,) => {
+    return [`/events/${eventId}/persons/${personId}`] as const;
+    }
+
+    
+export const getGetEventsEventIdPersonsPersonIdQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError = unknown>(eventId: string,
+    personId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventsEventIdPersonsPersonIdQueryKey(eventId,personId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>> = ({ signal }) => getEventsEventIdPersonsPersonId(eventId,personId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(eventId && personId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventsEventIdPersonsPersonIdQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>>
+export type GetEventsEventIdPersonsPersonIdQueryError = unknown
+
+
+export function useGetEventsEventIdPersonsPersonId<TData = Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError = unknown>(
+ eventId: string,
+    personId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdPersonsPersonId<TData = Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError = unknown>(
+ eventId: string,
+    personId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdPersonsPersonId<TData = Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError = unknown>(
+ eventId: string,
+    personId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get a specific person
+ */
+
+export function useGetEventsEventIdPersonsPersonId<TData = Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError = unknown>(
+ eventId: string,
+    personId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdPersonsPersonId>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventsEventIdPersonsPersonIdQueryOptions(eventId,personId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Update a person
+ */
+export const putEventsEventIdPersonsPersonId = (
+    eventId: string,
+    personId: string,
+    updatePersonRequest: UpdatePersonRequest,
+ ) => {
+      
+      
+      return apiClient<PersonInvolved>(
+      {url: `/events/${eventId}/persons/${personId}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updatePersonRequest
+    },
+      );
+    }
+  
+
+
+export const getPutEventsEventIdPersonsPersonIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdPersonsPersonId>>, TError,{eventId: string;personId: string;data: UpdatePersonRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdPersonsPersonId>>, TError,{eventId: string;personId: string;data: UpdatePersonRequest}, TContext> => {
+
+const mutationKey = ['putEventsEventIdPersonsPersonId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putEventsEventIdPersonsPersonId>>, {eventId: string;personId: string;data: UpdatePersonRequest}> = (props) => {
+          const {eventId,personId,data} = props ?? {};
+
+          return  putEventsEventIdPersonsPersonId(eventId,personId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutEventsEventIdPersonsPersonIdMutationResult = NonNullable<Awaited<ReturnType<typeof putEventsEventIdPersonsPersonId>>>
+    export type PutEventsEventIdPersonsPersonIdMutationBody = UpdatePersonRequest
+    export type PutEventsEventIdPersonsPersonIdMutationError = unknown
+
+    /**
+ * @summary Update a person
+ */
+export const usePutEventsEventIdPersonsPersonId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdPersonsPersonId>>, TError,{eventId: string;personId: string;data: UpdatePersonRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putEventsEventIdPersonsPersonId>>,
+        TError,
+        {eventId: string;personId: string;data: UpdatePersonRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutEventsEventIdPersonsPersonIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Delete a person
+ */
+export const deleteEventsEventIdPersonsPersonId = (
+    eventId: string,
+    personId: string,
+ ) => {
+      
+      
+      return apiClient<null>(
+      {url: `/events/${eventId}/persons/${personId}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteEventsEventIdPersonsPersonIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdPersonsPersonId>>, TError,{eventId: string;personId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdPersonsPersonId>>, TError,{eventId: string;personId: string}, TContext> => {
+
+const mutationKey = ['deleteEventsEventIdPersonsPersonId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEventsEventIdPersonsPersonId>>, {eventId: string;personId: string}> = (props) => {
+          const {eventId,personId} = props ?? {};
+
+          return  deleteEventsEventIdPersonsPersonId(eventId,personId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEventsEventIdPersonsPersonIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEventsEventIdPersonsPersonId>>>
+    
+    export type DeleteEventsEventIdPersonsPersonIdMutationError = unknown
+
+    /**
+ * @summary Delete a person
+ */
+export const useDeleteEventsEventIdPersonsPersonId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdPersonsPersonId>>, TError,{eventId: string;personId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEventsEventIdPersonsPersonId>>,
+        TError,
+        {eventId: string;personId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteEventsEventIdPersonsPersonIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Get all vehicles for an event
+ */
+export const getEventsEventIdVehicles = (
+    eventId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<VehicleInvolved[]>(
+      {url: `/events/${eventId}/vehicles`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetEventsEventIdVehiclesQueryKey = (eventId?: string,) => {
+    return [`/events/${eventId}/vehicles`] as const;
+    }
+
+    
+export const getGetEventsEventIdVehiclesQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError = unknown>(eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventsEventIdVehiclesQueryKey(eventId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIdVehicles>>> = ({ signal }) => getEventsEventIdVehicles(eventId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(eventId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventsEventIdVehiclesQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIdVehicles>>>
+export type GetEventsEventIdVehiclesQueryError = unknown
+
+
+export function useGetEventsEventIdVehicles<TData = Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError = unknown>(
+ eventId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdVehicles>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdVehicles>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdVehicles<TData = Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdVehicles>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdVehicles>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdVehicles<TData = Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get all vehicles for an event
+ */
+
+export function useGetEventsEventIdVehicles<TData = Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehicles>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventsEventIdVehiclesQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Add a new vehicle to an event
+ */
+export const postEventsEventIdVehicles = (
+    eventId: string,
+    createVehicleRequest: CreateVehicleRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<VehicleInvolved>(
+      {url: `/events/${eventId}/vehicles`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createVehicleRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostEventsEventIdVehiclesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdVehicles>>, TError,{eventId: string;data: CreateVehicleRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdVehicles>>, TError,{eventId: string;data: CreateVehicleRequest}, TContext> => {
+
+const mutationKey = ['postEventsEventIdVehicles'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postEventsEventIdVehicles>>, {eventId: string;data: CreateVehicleRequest}> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  postEventsEventIdVehicles(eventId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostEventsEventIdVehiclesMutationResult = NonNullable<Awaited<ReturnType<typeof postEventsEventIdVehicles>>>
+    export type PostEventsEventIdVehiclesMutationBody = CreateVehicleRequest
+    export type PostEventsEventIdVehiclesMutationError = unknown
+
+    /**
+ * @summary Add a new vehicle to an event
+ */
+export const usePostEventsEventIdVehicles = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdVehicles>>, TError,{eventId: string;data: CreateVehicleRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postEventsEventIdVehicles>>,
+        TError,
+        {eventId: string;data: CreateVehicleRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostEventsEventIdVehiclesMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Get a specific vehicle
+ */
+export const getEventsEventIdVehiclesVehicleId = (
+    eventId: string,
+    vehicleId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<VehicleInvolved>(
+      {url: `/events/${eventId}/vehicles/${vehicleId}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetEventsEventIdVehiclesVehicleIdQueryKey = (eventId?: string,
+    vehicleId?: string,) => {
+    return [`/events/${eventId}/vehicles/${vehicleId}`] as const;
+    }
+
+    
+export const getGetEventsEventIdVehiclesVehicleIdQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError = unknown>(eventId: string,
+    vehicleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventsEventIdVehiclesVehicleIdQueryKey(eventId,vehicleId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>> = ({ signal }) => getEventsEventIdVehiclesVehicleId(eventId,vehicleId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(eventId && vehicleId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventsEventIdVehiclesVehicleIdQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>>
+export type GetEventsEventIdVehiclesVehicleIdQueryError = unknown
+
+
+export function useGetEventsEventIdVehiclesVehicleId<TData = Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError = unknown>(
+ eventId: string,
+    vehicleId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdVehiclesVehicleId<TData = Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError = unknown>(
+ eventId: string,
+    vehicleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdVehiclesVehicleId<TData = Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError = unknown>(
+ eventId: string,
+    vehicleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get a specific vehicle
+ */
+
+export function useGetEventsEventIdVehiclesVehicleId<TData = Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError = unknown>(
+ eventId: string,
+    vehicleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdVehiclesVehicleId>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventsEventIdVehiclesVehicleIdQueryOptions(eventId,vehicleId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Update a vehicle
+ */
+export const putEventsEventIdVehiclesVehicleId = (
+    eventId: string,
+    vehicleId: string,
+    updateVehicleRequest: UpdateVehicleRequest,
+ ) => {
+      
+      
+      return apiClient<VehicleInvolved>(
+      {url: `/events/${eventId}/vehicles/${vehicleId}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateVehicleRequest
+    },
+      );
+    }
+  
+
+
+export const getPutEventsEventIdVehiclesVehicleIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdVehiclesVehicleId>>, TError,{eventId: string;vehicleId: string;data: UpdateVehicleRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdVehiclesVehicleId>>, TError,{eventId: string;vehicleId: string;data: UpdateVehicleRequest}, TContext> => {
+
+const mutationKey = ['putEventsEventIdVehiclesVehicleId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putEventsEventIdVehiclesVehicleId>>, {eventId: string;vehicleId: string;data: UpdateVehicleRequest}> = (props) => {
+          const {eventId,vehicleId,data} = props ?? {};
+
+          return  putEventsEventIdVehiclesVehicleId(eventId,vehicleId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutEventsEventIdVehiclesVehicleIdMutationResult = NonNullable<Awaited<ReturnType<typeof putEventsEventIdVehiclesVehicleId>>>
+    export type PutEventsEventIdVehiclesVehicleIdMutationBody = UpdateVehicleRequest
+    export type PutEventsEventIdVehiclesVehicleIdMutationError = unknown
+
+    /**
+ * @summary Update a vehicle
+ */
+export const usePutEventsEventIdVehiclesVehicleId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdVehiclesVehicleId>>, TError,{eventId: string;vehicleId: string;data: UpdateVehicleRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putEventsEventIdVehiclesVehicleId>>,
+        TError,
+        {eventId: string;vehicleId: string;data: UpdateVehicleRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutEventsEventIdVehiclesVehicleIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Delete a vehicle
+ */
+export const deleteEventsEventIdVehiclesVehicleId = (
+    eventId: string,
+    vehicleId: string,
+ ) => {
+      
+      
+      return apiClient<null>(
+      {url: `/events/${eventId}/vehicles/${vehicleId}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteEventsEventIdVehiclesVehicleIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdVehiclesVehicleId>>, TError,{eventId: string;vehicleId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdVehiclesVehicleId>>, TError,{eventId: string;vehicleId: string}, TContext> => {
+
+const mutationKey = ['deleteEventsEventIdVehiclesVehicleId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEventsEventIdVehiclesVehicleId>>, {eventId: string;vehicleId: string}> = (props) => {
+          const {eventId,vehicleId} = props ?? {};
+
+          return  deleteEventsEventIdVehiclesVehicleId(eventId,vehicleId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEventsEventIdVehiclesVehicleIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEventsEventIdVehiclesVehicleId>>>
+    
+    export type DeleteEventsEventIdVehiclesVehicleIdMutationError = unknown
+
+    /**
+ * @summary Delete a vehicle
+ */
+export const useDeleteEventsEventIdVehiclesVehicleId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdVehiclesVehicleId>>, TError,{eventId: string;vehicleId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEventsEventIdVehiclesVehicleId>>,
+        TError,
+        {eventId: string;vehicleId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteEventsEventIdVehiclesVehicleIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Get all products for an event
+ */
+export const getEventsEventIdProducts = (
+    eventId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<ProductInvolved[]>(
+      {url: `/events/${eventId}/products`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetEventsEventIdProductsQueryKey = (eventId?: string,) => {
+    return [`/events/${eventId}/products`] as const;
+    }
+
+    
+export const getGetEventsEventIdProductsQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError = unknown>(eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventsEventIdProductsQueryKey(eventId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIdProducts>>> = ({ signal }) => getEventsEventIdProducts(eventId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(eventId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventsEventIdProductsQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIdProducts>>>
+export type GetEventsEventIdProductsQueryError = unknown
+
+
+export function useGetEventsEventIdProducts<TData = Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError = unknown>(
+ eventId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdProducts>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdProducts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdProducts<TData = Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdProducts>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdProducts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdProducts<TData = Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get all products for an event
+ */
+
+export function useGetEventsEventIdProducts<TData = Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError = unknown>(
+ eventId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProducts>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventsEventIdProductsQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Add a new product to an event
+ */
+export const postEventsEventIdProducts = (
+    eventId: string,
+    createProductRequest: CreateProductRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<ProductInvolved>(
+      {url: `/events/${eventId}/products`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createProductRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostEventsEventIdProductsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdProducts>>, TError,{eventId: string;data: CreateProductRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdProducts>>, TError,{eventId: string;data: CreateProductRequest}, TContext> => {
+
+const mutationKey = ['postEventsEventIdProducts'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postEventsEventIdProducts>>, {eventId: string;data: CreateProductRequest}> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  postEventsEventIdProducts(eventId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostEventsEventIdProductsMutationResult = NonNullable<Awaited<ReturnType<typeof postEventsEventIdProducts>>>
+    export type PostEventsEventIdProductsMutationBody = CreateProductRequest
+    export type PostEventsEventIdProductsMutationError = unknown
+
+    /**
+ * @summary Add a new product to an event
+ */
+export const usePostEventsEventIdProducts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postEventsEventIdProducts>>, TError,{eventId: string;data: CreateProductRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postEventsEventIdProducts>>,
+        TError,
+        {eventId: string;data: CreateProductRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostEventsEventIdProductsMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Get a specific product
+ */
+export const getEventsEventIdProductsProductId = (
+    eventId: string,
+    productId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<ProductInvolved>(
+      {url: `/events/${eventId}/products/${productId}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetEventsEventIdProductsProductIdQueryKey = (eventId?: string,
+    productId?: string,) => {
+    return [`/events/${eventId}/products/${productId}`] as const;
+    }
+
+    
+export const getGetEventsEventIdProductsProductIdQueryOptions = <TData = Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError = unknown>(eventId: string,
+    productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventsEventIdProductsProductIdQueryKey(eventId,productId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>> = ({ signal }) => getEventsEventIdProductsProductId(eventId,productId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(eventId && productId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventsEventIdProductsProductIdQueryResult = NonNullable<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>>
+export type GetEventsEventIdProductsProductIdQueryError = unknown
+
+
+export function useGetEventsEventIdProductsProductId<TData = Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError = unknown>(
+ eventId: string,
+    productId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdProductsProductId<TData = Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError = unknown>(
+ eventId: string,
+    productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>,
+          TError,
+          Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventsEventIdProductsProductId<TData = Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError = unknown>(
+ eventId: string,
+    productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get a specific product
+ */
+
+export function useGetEventsEventIdProductsProductId<TData = Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError = unknown>(
+ eventId: string,
+    productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventsEventIdProductsProductId>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventsEventIdProductsProductIdQueryOptions(eventId,productId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Update a product
+ */
+export const putEventsEventIdProductsProductId = (
+    eventId: string,
+    productId: string,
+    updateProductRequest: UpdateProductRequest,
+ ) => {
+      
+      
+      return apiClient<ProductInvolved>(
+      {url: `/events/${eventId}/products/${productId}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateProductRequest
+    },
+      );
+    }
+  
+
+
+export const getPutEventsEventIdProductsProductIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdProductsProductId>>, TError,{eventId: string;productId: string;data: UpdateProductRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdProductsProductId>>, TError,{eventId: string;productId: string;data: UpdateProductRequest}, TContext> => {
+
+const mutationKey = ['putEventsEventIdProductsProductId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putEventsEventIdProductsProductId>>, {eventId: string;productId: string;data: UpdateProductRequest}> = (props) => {
+          const {eventId,productId,data} = props ?? {};
+
+          return  putEventsEventIdProductsProductId(eventId,productId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutEventsEventIdProductsProductIdMutationResult = NonNullable<Awaited<ReturnType<typeof putEventsEventIdProductsProductId>>>
+    export type PutEventsEventIdProductsProductIdMutationBody = UpdateProductRequest
+    export type PutEventsEventIdProductsProductIdMutationError = unknown
+
+    /**
+ * @summary Update a product
+ */
+export const usePutEventsEventIdProductsProductId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEventsEventIdProductsProductId>>, TError,{eventId: string;productId: string;data: UpdateProductRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putEventsEventIdProductsProductId>>,
+        TError,
+        {eventId: string;productId: string;data: UpdateProductRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutEventsEventIdProductsProductIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * @summary Delete a product
+ */
+export const deleteEventsEventIdProductsProductId = (
+    eventId: string,
+    productId: string,
+ ) => {
+      
+      
+      return apiClient<null>(
+      {url: `/events/${eventId}/products/${productId}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteEventsEventIdProductsProductIdMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdProductsProductId>>, TError,{eventId: string;productId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdProductsProductId>>, TError,{eventId: string;productId: string}, TContext> => {
+
+const mutationKey = ['deleteEventsEventIdProductsProductId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEventsEventIdProductsProductId>>, {eventId: string;productId: string}> = (props) => {
+          const {eventId,productId} = props ?? {};
+
+          return  deleteEventsEventIdProductsProductId(eventId,productId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEventsEventIdProductsProductIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEventsEventIdProductsProductId>>>
+    
+    export type DeleteEventsEventIdProductsProductIdMutationError = unknown
+
+    /**
+ * @summary Delete a product
+ */
+export const useDeleteEventsEventIdProductsProductId = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEventsEventIdProductsProductId>>, TError,{eventId: string;productId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEventsEventIdProductsProductId>>,
+        TError,
+        {eventId: string;productId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteEventsEventIdProductsProductIdMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }

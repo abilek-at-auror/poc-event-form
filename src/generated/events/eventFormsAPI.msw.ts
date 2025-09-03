@@ -17,7 +17,10 @@ import {
 import type {
   EventResponse,
   EventTypeConfig,
-  ValidationResponse
+  PersonInvolved,
+  ProductInvolved,
+  ValidationResponse,
+  VehicleInvolved
 } from './eventFormsAPI.schemas';
 
 
@@ -32,6 +35,30 @@ export const getPatchEventsEventIdResponseMock = (overrideResponse: Partial< Eve
 export const getPostEventsEventIdPublishResponseMock = (overrideResponse: Partial< EventResponse > = {}): EventResponse => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), eventType: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organizationId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), siteId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), status: faker.helpers.arrayElement([faker.helpers.arrayElement(['draft','published'] as const), undefined]), metadata: faker.helpers.arrayElement([{title: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), priority: faker.helpers.arrayElement([faker.helpers.arrayElement(['low','medium','high','critical'] as const), undefined]), occurredAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined])}, undefined]), sections: faker.helpers.arrayElement([{persons: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(['suspect','victim','witness','employee'] as const), undefined]), age: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])})), undefined]), vehicles: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), make: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), model: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), licensePlate: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), products: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sku: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), quantity: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), unitValue: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined])})), undefined])}, undefined]), validation: faker.helpers.arrayElement([{isValid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), canPublish: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), errorCount: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])}, undefined]), ...overrideResponse})
 
 export const getPostEventsEventIdValidateResponseMock = (overrideResponse: Partial< ValidationResponse > = {}): ValidationResponse => ({valid: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), canPublish: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), issues: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({field: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), message: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), severity: faker.helpers.arrayElement([faker.helpers.arrayElement(['error','warning'] as const), undefined])})), undefined]), ...overrideResponse})
+
+export const getGetEventsEventIdPersonsResponseMock = (): PersonInvolved[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(['suspect','victim','witness','employee'] as const), undefined]), age: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])})))
+
+export const getPostEventsEventIdPersonsResponseMock = (overrideResponse: Partial< PersonInvolved > = {}): PersonInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(['suspect','victim','witness','employee'] as const), undefined]), age: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), ...overrideResponse})
+
+export const getGetEventsEventIdPersonsPersonIdResponseMock = (overrideResponse: Partial< PersonInvolved > = {}): PersonInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(['suspect','victim','witness','employee'] as const), undefined]), age: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), ...overrideResponse})
+
+export const getPutEventsEventIdPersonsPersonIdResponseMock = (overrideResponse: Partial< PersonInvolved > = {}): PersonInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(['suspect','victim','witness','employee'] as const), undefined]), age: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), ...overrideResponse})
+
+export const getGetEventsEventIdVehiclesResponseMock = (): VehicleInvolved[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), make: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), model: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), licensePlate: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})))
+
+export const getPostEventsEventIdVehiclesResponseMock = (overrideResponse: Partial< VehicleInvolved > = {}): VehicleInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), make: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), model: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), licensePlate: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
+
+export const getGetEventsEventIdVehiclesVehicleIdResponseMock = (overrideResponse: Partial< VehicleInvolved > = {}): VehicleInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), make: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), model: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), licensePlate: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
+
+export const getPutEventsEventIdVehiclesVehicleIdResponseMock = (overrideResponse: Partial< VehicleInvolved > = {}): VehicleInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), make: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), model: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), licensePlate: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
+
+export const getGetEventsEventIdProductsResponseMock = (): ProductInvolved[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sku: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), quantity: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), unitValue: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined])})))
+
+export const getPostEventsEventIdProductsResponseMock = (overrideResponse: Partial< ProductInvolved > = {}): ProductInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sku: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), quantity: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), unitValue: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), ...overrideResponse})
+
+export const getGetEventsEventIdProductsProductIdResponseMock = (overrideResponse: Partial< ProductInvolved > = {}): ProductInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sku: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), quantity: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), unitValue: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), ...overrideResponse})
+
+export const getPutEventsEventIdProductsProductIdResponseMock = (overrideResponse: Partial< ProductInvolved > = {}): ProductInvolved => ({id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sku: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), quantity: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), unitValue: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), ...overrideResponse})
 
 
 export const getGetEventTypesEventTypeConfigMockHandler = (overrideResponse?: EventTypeConfig | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EventTypeConfig> | EventTypeConfig)) => {
@@ -105,11 +132,200 @@ export const getPostEventsEventIdValidateMockHandler = (overrideResponse?: Valid
       })
   })
 }
+
+export const getGetEventsEventIdPersonsMockHandler = (overrideResponse?: PersonInvolved[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PersonInvolved[]> | PersonInvolved[])) => {
+  return http.get('*/events/:eventId/persons', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEventsEventIdPersonsResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getPostEventsEventIdPersonsMockHandler = (overrideResponse?: PersonInvolved | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PersonInvolved> | PersonInvolved)) => {
+  return http.post('*/events/:eventId/persons', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPostEventsEventIdPersonsResponseMock()),
+      { status: 201,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getGetEventsEventIdPersonsPersonIdMockHandler = (overrideResponse?: PersonInvolved | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PersonInvolved> | PersonInvolved)) => {
+  return http.get('*/events/:eventId/persons/:personId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEventsEventIdPersonsPersonIdResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getPutEventsEventIdPersonsPersonIdMockHandler = (overrideResponse?: PersonInvolved | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<PersonInvolved> | PersonInvolved)) => {
+  return http.put('*/events/:eventId/persons/:personId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutEventsEventIdPersonsPersonIdResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getDeleteEventsEventIdPersonsPersonIdMockHandler = (overrideResponse?: null | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<null> | null)) => {
+  return http.delete('*/events/:eventId/persons/:personId', async (info) => {await delay(1000);
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+    return new HttpResponse(null,
+      { status: 204,
+        
+      })
+  })
+}
+
+export const getGetEventsEventIdVehiclesMockHandler = (overrideResponse?: VehicleInvolved[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<VehicleInvolved[]> | VehicleInvolved[])) => {
+  return http.get('*/events/:eventId/vehicles', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEventsEventIdVehiclesResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getPostEventsEventIdVehiclesMockHandler = (overrideResponse?: VehicleInvolved | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<VehicleInvolved> | VehicleInvolved)) => {
+  return http.post('*/events/:eventId/vehicles', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPostEventsEventIdVehiclesResponseMock()),
+      { status: 201,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getGetEventsEventIdVehiclesVehicleIdMockHandler = (overrideResponse?: VehicleInvolved | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<VehicleInvolved> | VehicleInvolved)) => {
+  return http.get('*/events/:eventId/vehicles/:vehicleId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEventsEventIdVehiclesVehicleIdResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getPutEventsEventIdVehiclesVehicleIdMockHandler = (overrideResponse?: VehicleInvolved | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<VehicleInvolved> | VehicleInvolved)) => {
+  return http.put('*/events/:eventId/vehicles/:vehicleId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutEventsEventIdVehiclesVehicleIdResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getDeleteEventsEventIdVehiclesVehicleIdMockHandler = (overrideResponse?: null | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<null> | null)) => {
+  return http.delete('*/events/:eventId/vehicles/:vehicleId', async (info) => {await delay(1000);
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+    return new HttpResponse(null,
+      { status: 204,
+        
+      })
+  })
+}
+
+export const getGetEventsEventIdProductsMockHandler = (overrideResponse?: ProductInvolved[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProductInvolved[]> | ProductInvolved[])) => {
+  return http.get('*/events/:eventId/products', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEventsEventIdProductsResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getPostEventsEventIdProductsMockHandler = (overrideResponse?: ProductInvolved | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ProductInvolved> | ProductInvolved)) => {
+  return http.post('*/events/:eventId/products', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPostEventsEventIdProductsResponseMock()),
+      { status: 201,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getGetEventsEventIdProductsProductIdMockHandler = (overrideResponse?: ProductInvolved | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProductInvolved> | ProductInvolved)) => {
+  return http.get('*/events/:eventId/products/:productId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetEventsEventIdProductsProductIdResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getPutEventsEventIdProductsProductIdMockHandler = (overrideResponse?: ProductInvolved | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<ProductInvolved> | ProductInvolved)) => {
+  return http.put('*/events/:eventId/products/:productId', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutEventsEventIdProductsProductIdResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  })
+}
+
+export const getDeleteEventsEventIdProductsProductIdMockHandler = (overrideResponse?: null | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<null> | null)) => {
+  return http.delete('*/events/:eventId/products/:productId', async (info) => {await delay(1000);
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+    return new HttpResponse(null,
+      { status: 204,
+        
+      })
+  })
+}
 export const getEventFormsAPIMock = () => [
   getGetEventTypesEventTypeConfigMockHandler(),
   getPostEventsMockHandler(),
   getGetEventsEventIdMockHandler(),
   getPatchEventsEventIdMockHandler(),
   getPostEventsEventIdPublishMockHandler(),
-  getPostEventsEventIdValidateMockHandler()
+  getPostEventsEventIdValidateMockHandler(),
+  getGetEventsEventIdPersonsMockHandler(),
+  getPostEventsEventIdPersonsMockHandler(),
+  getGetEventsEventIdPersonsPersonIdMockHandler(),
+  getPutEventsEventIdPersonsPersonIdMockHandler(),
+  getDeleteEventsEventIdPersonsPersonIdMockHandler(),
+  getGetEventsEventIdVehiclesMockHandler(),
+  getPostEventsEventIdVehiclesMockHandler(),
+  getGetEventsEventIdVehiclesVehicleIdMockHandler(),
+  getPutEventsEventIdVehiclesVehicleIdMockHandler(),
+  getDeleteEventsEventIdVehiclesVehicleIdMockHandler(),
+  getGetEventsEventIdProductsMockHandler(),
+  getPostEventsEventIdProductsMockHandler(),
+  getGetEventsEventIdProductsProductIdMockHandler(),
+  getPutEventsEventIdProductsProductIdMockHandler(),
+  getDeleteEventsEventIdProductsProductIdMockHandler()
 ]

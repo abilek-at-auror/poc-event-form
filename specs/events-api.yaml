@@ -116,6 +116,319 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationResponse'
 
+  # Section-specific endpoints
+  /events/{eventId}/persons:
+    get:
+      summary: Get all persons for an event
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List of persons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonInvolved'
+    post:
+      summary: Add a new person to an event
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePersonRequest'
+      responses:
+        '201':
+          description: Person created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonInvolved'
+
+  /events/{eventId}/persons/{personId}:
+    get:
+      summary: Get a specific person
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: personId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Person details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonInvolved'
+    put:
+      summary: Update a person
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: personId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePersonRequest'
+      responses:
+        '200':
+          description: Person updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonInvolved'
+    delete:
+      summary: Delete a person
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: personId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Person deleted
+
+  /events/{eventId}/vehicles:
+    get:
+      summary: Get all vehicles for an event
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List of vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleInvolved'
+    post:
+      summary: Add a new vehicle to an event
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVehicleRequest'
+      responses:
+        '201':
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleInvolved'
+
+  /events/{eventId}/vehicles/{vehicleId}:
+    get:
+      summary: Get a specific vehicle
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: vehicleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Vehicle details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleInvolved'
+    put:
+      summary: Update a vehicle
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: vehicleId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVehicleRequest'
+      responses:
+        '200':
+          description: Vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleInvolved'
+    delete:
+      summary: Delete a vehicle
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: vehicleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Vehicle deleted
+
+  /events/{eventId}/products:
+    get:
+      summary: Get all products for an event
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductInvolved'
+    post:
+      summary: Add a new product to an event
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInvolved'
+
+  /events/{eventId}/products/{productId}:
+    get:
+      summary: Get a specific product
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInvolved'
+    put:
+      summary: Update a product
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInvolved'
+    delete:
+      summary: Delete a product
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Product deleted
+
 components:
   schemas:
     # Configuration
@@ -286,3 +599,87 @@ components:
         severity:
           type: string
           enum: [ error, warning ]
+
+    # Request schemas for section operations
+    CreatePersonRequest:
+      type: object
+      required:
+      - name
+      - role
+      properties:
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/PersonInvolvedRole'
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+
+    UpdatePersonRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/PersonInvolvedRole'
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+
+    CreateVehicleRequest:
+      type: object
+      required:
+      - make
+      - model
+      properties:
+        make:
+          type: string
+        model:
+          type: string
+        licensePlate:
+          type: string
+
+    UpdateVehicleRequest:
+      type: object
+      properties:
+        make:
+          type: string
+        model:
+          type: string
+        licensePlate:
+          type: string
+
+    CreateProductRequest:
+      type: object
+      required:
+      - name
+      - sku
+      properties:
+        name:
+          type: string
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        unitValue:
+          type: number
+          format: float
+          minimum: 0
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        unitValue:
+          type: number
+          format: float
+          minimum: 0

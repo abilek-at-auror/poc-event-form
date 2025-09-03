@@ -10,6 +10,8 @@ interface ValidationStatusProps {
 }
 
 export function ValidationStatus({ eventId }: ValidationStatusProps) {
+  console.log("ValidationStatus rendering with eventId:", eventId);
+
   const queryClient = useQueryClient();
   const {
     event,
@@ -19,6 +21,14 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
     allErrors,
     totalErrors
   } = useEventValidation({ eventId });
+
+  console.log("ValidationStatus data:", {
+    event,
+    isValid,
+    canPublish,
+    validationSummary,
+    totalErrors
+  });
 
   const publishMutation = usePostEventsEventIdPublish({
     mutation: {
@@ -35,7 +45,16 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
   };
 
   if (!event || !validationSummary) {
-    return null;
+    return (
+      <Card className="p-6 bg-gray-50">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">
+            Loading validation status...
+          </span>
+        </div>
+      </Card>
+    );
   }
 
   const isPublished = event.status === "published";

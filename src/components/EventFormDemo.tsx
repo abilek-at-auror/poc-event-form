@@ -193,7 +193,7 @@ export default function EventFormDemo() {
             <ConditionalSection
               key={sectionConfig.sectionId}
               sectionId={sectionConfig.sectionId!}
-              config={eventTypeConfig}
+              config={sectionConfig}
             >
               {sectionConfig.sectionId === 'persons' && (
                 <PersonsSection eventId={draftEventId} />
@@ -218,6 +218,7 @@ export default function EventFormDemo() {
           ))}
 
           {/* Validation and Publish Section */}
+          {console.log('Rendering ValidationStatus with eventId:', draftEventId)}
           <ValidationStatus eventId={draftEventId} />
         </div>
       )}

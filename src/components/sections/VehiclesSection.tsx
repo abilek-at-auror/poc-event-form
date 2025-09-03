@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { AtomicInput } from "../ui/AtomicInput";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
+import type { VehicleInvolved } from "../../generated/events/eventFormsAPI.schemas";
 
 interface VehiclesSectionProps {
   eventId: string;

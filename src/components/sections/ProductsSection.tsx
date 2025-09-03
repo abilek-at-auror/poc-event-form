@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { AtomicInput } from "../ui/AtomicInput";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
+import type { ProductInvolved } from "../../generated/events/eventFormsAPI.schemas";
 import { useSectionValidation } from "../../hooks/useEventValidation";
 
 interface ProductsSectionProps {

@@ -1,0 +1,288 @@
+openapi: 3.0.0
+info:
+  title: Event Forms API
+  version: 1.0.0
+servers:
+- url: http://localhost:3001/api
+
+paths:
+  # Event Type Configuration
+  /event-types/{eventType}/config:
+    get:
+      summary: Get configuration for specific event type
+      parameters:
+      - name: eventType
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Event type configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTypeConfig'
+
+  # Event Operations
+  /events:
+    post:
+      summary: Create new event (draft)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
+  /events/{eventId}:
+    get:
+      summary: Get event by ID
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
+    patch:
+      summary: Update event fields atomically
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Event updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
+  /events/{eventId}/publish:
+    post:
+      summary: Publish event (validate and finalize)
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Event published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
+  /events/{eventId}/validate:
+    post:
+      summary: Validate event without publishing
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+
+components:
+  schemas:
+    # Configuration
+    EventTypeConfig:
+      type: object
+      properties:
+        eventType:
+          type: string
+          example: "shoplifting"
+        displayName:
+          type: string
+          example: "Shoplifting Incident"
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SectionConfig'
+
+    SectionConfig:
+      type: object
+      properties:
+        sectionId:
+          type: string
+          enum: [ persons, vehicles, products, evidence ]
+        displayName:
+          type: string
+        required:
+          type: boolean
+        minimumEntries:
+          type: integer
+          minimum: 0
+
+    # Event Data
+    CreateEventRequest:
+      type: object
+      required:
+      - eventType
+      - organizationId
+      - siteId
+      properties:
+        eventType:
+          type: string
+        organizationId:
+          type: string
+        siteId:
+          type: string
+
+    EventResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        eventType:
+          type: string
+        organizationId:
+          type: string
+        siteId:
+          type: string
+        status:
+          type: string
+          enum: [ draft, published ]
+        metadata:
+          $ref: '#/components/schemas/EventMetadata'
+        sections:
+          $ref: '#/components/schemas/EventSections'
+        validation:
+          $ref: '#/components/schemas/ValidationSummary'
+
+    EventMetadata:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [ low, medium, high, critical ]
+        occurredAt:
+          type: string
+          format: date-time
+
+    EventSections:
+      type: object
+      properties:
+        persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonInvolved'
+        vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleInvolved'
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductInvolved'
+
+    # Section Models
+    PersonInvolved:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [ suspect, victim, witness, employee ]
+        age:
+          type: integer
+
+    VehicleInvolved:
+      type: object
+      properties:
+        id:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        licensePlate:
+          type: string
+
+    ProductInvolved:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sku:
+          type: string
+        quantity:
+          type: integer
+        unitValue:
+          type: number
+
+    # Validation
+    ValidationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        canPublish:
+          type: boolean
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+
+    ValidationSummary:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+        canPublish:
+          type: boolean
+        errorCount:
+          type: integer
+
+    ValidationIssue:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [ error, warning ]

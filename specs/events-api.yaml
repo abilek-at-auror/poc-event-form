@@ -476,31 +476,23 @@ components:
           type: string
 
     EventResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        eventType:
-          type: string
-        organizationId:
-          type: string
-        siteId:
-          type: string
-        status:
-          type: string
-          enum: [ draft, published ]
-        metadata:
-          $ref: '#/components/schemas/EventMetadata'
-        sections:
-          $ref: '#/components/schemas/EventSections'
-        validation:
-          $ref: '#/components/schemas/ValidationSummary'
+      allOf:
+      - $ref: '#/components/schemas/Event'
+      - type: object
+        properties:
+          validation:
+            $ref: '#/components/schemas/ValidationSummary'
 
     EventMetadata:
       type: object
+      required:
+      - title
+      - priority
+      - occurredAt
       properties:
         title:
           type: string
+          minLength: 1
         description:
           type: string
         priority:
@@ -525,46 +517,208 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProductInvolved'
+        evidence:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    # Base Event Schema
+    BaseEvent:
+      type: object
+      required:
+      - id
+      - eventType
+      - organizationId
+      - siteId
+      - status
+      - metadata
+      properties:
+        id:
+          type: string
+        eventType:
+          type: string
+        organizationId:
+          type: string
+        siteId:
+          type: string
+        status:
+          type: string
+          enum: [ draft, published ]
+        metadata:
+          $ref: '#/components/schemas/EventMetadata'
+
+    # Discriminated Union Event Schemas
+    ShopliftingEvent:
+      allOf:
+      - $ref: '#/components/schemas/BaseEvent'
+      - type: object
+        required:
+        - sections
+        properties:
+          eventType:
+            type: string
+            enum: [ shoplifting ]
+          sections:
+            type: object
+            required:
+            - persons
+            - products
+            properties:
+              persons:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonInvolved'
+                minItems: 1
+              products:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductInvolved'
+                minItems: 1
+              vehicles:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleInvolved'
+
+    AccidentEvent:
+      allOf:
+      - $ref: '#/components/schemas/BaseEvent'
+      - type: object
+        required:
+        - sections
+        properties:
+          eventType:
+            type: string
+            enum: [ accident ]
+          sections:
+            type: object
+            required:
+            - persons
+            properties:
+              persons:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonInvolved'
+                minItems: 1
+              vehicles:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleInvolved'
+              products:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductInvolved'
+
+    VandalismEvent:
+      allOf:
+      - $ref: '#/components/schemas/BaseEvent'
+      - type: object
+        required:
+        - sections
+        properties:
+          eventType:
+            type: string
+            enum: [ vandalism ]
+          sections:
+            type: object
+            required:
+            - evidence
+            properties:
+              persons:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonInvolved'
+              vehicles:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleInvolved'
+              products:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductInvolved'
+              evidence:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                minItems: 1
+
+    # Discriminated Union for All Event Types
+    Event:
+      discriminator:
+        propertyName: eventType
+        mapping:
+          shoplifting: '#/components/schemas/ShopliftingEvent'
+          accident: '#/components/schemas/AccidentEvent'
+          vandalism: '#/components/schemas/VandalismEvent'
+      oneOf:
+      - $ref: '#/components/schemas/ShopliftingEvent'
+      - $ref: '#/components/schemas/AccidentEvent'
+      - $ref: '#/components/schemas/VandalismEvent'
 
     # Section Models
+    PersonInvolvedRole:
+      type: string
+      enum: [ suspect, victim, witness, employee ]
+
     PersonInvolved:
       type: object
+      required:
+      - id
+      - name
+      - role
       properties:
         id:
           type: string
         name:
           type: string
+          minLength: 1
         role:
-          type: string
-          enum: [ suspect, victim, witness, employee ]
+          $ref: '#/components/schemas/PersonInvolvedRole'
         age:
           type: integer
+          minimum: 0
+          maximum: 150
 
     VehicleInvolved:
       type: object
+      required:
+      - id
+      - make
+      - model
       properties:
         id:
           type: string
         make:
           type: string
+          minLength: 1
         model:
           type: string
+          minLength: 1
         licensePlate:
           type: string
 
     ProductInvolved:
       type: object
+      required:
+      - id
+      - name
+      - quantity
+      - unitValue
       properties:
         id:
           type: string
         name:
           type: string
+          minLength: 1
         sku:
           type: string
         quantity:
           type: integer
+          minimum: 1
         unitValue:
           type: number
+          minimum: 0
 
     # Validation
     ValidationResponse:

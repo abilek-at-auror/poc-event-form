@@ -35,25 +35,11 @@ export interface CreateEventRequest {
   siteId: string;
 }
 
-export type EventResponseStatus = typeof EventResponseStatus[keyof typeof EventResponseStatus];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const EventResponseStatus = {
-  draft: 'draft',
-  published: 'published',
-} as const;
-
-export interface EventResponse {
-  id?: string;
-  eventType?: string;
-  organizationId?: string;
-  siteId?: string;
-  status?: EventResponseStatus;
-  metadata?: EventMetadata;
-  sections?: EventSections;
+export type EventResponseAllOf = {
   validation?: ValidationSummary;
-}
+};
+
+export type EventResponse = Event & EventResponseAllOf;
 
 export type EventMetadataPriority = typeof EventMetadataPriority[keyof typeof EventMetadataPriority];
 
@@ -67,17 +53,141 @@ export const EventMetadataPriority = {
 } as const;
 
 export interface EventMetadata {
-  title?: string;
+  /** @minLength 1 */
+  title: string;
   description?: string;
-  priority?: EventMetadataPriority;
-  occurredAt?: string;
+  priority: EventMetadataPriority;
+  occurredAt: string;
 }
+
+export type EventSectionsEvidenceItem = { [key: string]: unknown };
 
 export interface EventSections {
   persons?: PersonInvolved[];
   vehicles?: VehicleInvolved[];
   products?: ProductInvolved[];
+  evidence?: EventSectionsEvidenceItem[];
 }
+
+export type BaseEventStatus = typeof BaseEventStatus[keyof typeof BaseEventStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const BaseEventStatus = {
+  draft: 'draft',
+  published: 'published',
+} as const;
+
+export interface BaseEvent {
+  id: string;
+  eventType: string;
+  organizationId: string;
+  siteId: string;
+  status: BaseEventStatus;
+  metadata: EventMetadata;
+}
+
+export type ShopliftingEventAllOfEventType = typeof ShopliftingEventAllOfEventType[keyof typeof ShopliftingEventAllOfEventType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ShopliftingEventAllOfEventType = {
+  shoplifting: 'shoplifting',
+} as const;
+
+export type ShopliftingEventAllOfSections = {
+  /** @minItems 1 */
+  persons: PersonInvolved[];
+  /** @minItems 1 */
+  products: ProductInvolved[];
+  vehicles?: VehicleInvolved[];
+};
+
+export type ShopliftingEventAllOf = {
+  eventType?: ShopliftingEventAllOfEventType;
+  sections: ShopliftingEventAllOfSections;
+};
+
+export type ShopliftingEventEventType = typeof ShopliftingEventEventType[keyof typeof ShopliftingEventEventType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ShopliftingEventEventType = {
+  shoplifting: 'shoplifting',
+} as const;
+
+export type ShopliftingEvent = BaseEvent & ShopliftingEventAllOf & {
+  eventType: ShopliftingEventEventType;
+};
+
+export type AccidentEventAllOfEventType = typeof AccidentEventAllOfEventType[keyof typeof AccidentEventAllOfEventType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AccidentEventAllOfEventType = {
+  accident: 'accident',
+} as const;
+
+export type AccidentEventAllOfSections = {
+  /** @minItems 1 */
+  persons: PersonInvolved[];
+  vehicles?: VehicleInvolved[];
+  products?: ProductInvolved[];
+};
+
+export type AccidentEventAllOf = {
+  eventType?: AccidentEventAllOfEventType;
+  sections: AccidentEventAllOfSections;
+};
+
+export type AccidentEventEventType = typeof AccidentEventEventType[keyof typeof AccidentEventEventType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AccidentEventEventType = {
+  accident: 'accident',
+} as const;
+
+export type AccidentEvent = BaseEvent & AccidentEventAllOf & {
+  eventType: AccidentEventEventType;
+};
+
+export type VandalismEventAllOfEventType = typeof VandalismEventAllOfEventType[keyof typeof VandalismEventAllOfEventType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const VandalismEventAllOfEventType = {
+  vandalism: 'vandalism',
+} as const;
+
+export type VandalismEventAllOfSectionsEvidenceItem = { [key: string]: unknown };
+
+export type VandalismEventAllOfSections = {
+  persons?: PersonInvolved[];
+  vehicles?: VehicleInvolved[];
+  products?: ProductInvolved[];
+  /** @minItems 1 */
+  evidence: VandalismEventAllOfSectionsEvidenceItem[];
+};
+
+export type VandalismEventAllOf = {
+  eventType?: VandalismEventAllOfEventType;
+  sections: VandalismEventAllOfSections;
+};
+
+export type VandalismEventEventType = typeof VandalismEventEventType[keyof typeof VandalismEventEventType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const VandalismEventEventType = {
+  vandalism: 'vandalism',
+} as const;
+
+export type VandalismEvent = BaseEvent & VandalismEventAllOf & {
+  eventType: VandalismEventEventType;
+};
+
+export type Event = ShopliftingEvent | AccidentEvent | VandalismEvent;
 
 export type PersonInvolvedRole = typeof PersonInvolvedRole[keyof typeof PersonInvolvedRole];
 
@@ -91,25 +201,35 @@ export const PersonInvolvedRole = {
 } as const;
 
 export interface PersonInvolved {
-  id?: string;
-  name?: string;
-  role?: PersonInvolvedRole;
+  id: string;
+  /** @minLength 1 */
+  name: string;
+  role: PersonInvolvedRole;
+  /**
+   * @minimum 0
+   * @maximum 150
+   */
   age?: number;
 }
 
 export interface VehicleInvolved {
-  id?: string;
-  make?: string;
-  model?: string;
+  id: string;
+  /** @minLength 1 */
+  make: string;
+  /** @minLength 1 */
+  model: string;
   licensePlate?: string;
 }
 
 export interface ProductInvolved {
-  id?: string;
-  name?: string;
+  id: string;
+  /** @minLength 1 */
+  name: string;
   sku?: string;
-  quantity?: number;
-  unitValue?: number;
+  /** @minimum 1 */
+  quantity: number;
+  /** @minimum 0 */
+  unitValue: number;
 }
 
 export interface ValidationResponse {

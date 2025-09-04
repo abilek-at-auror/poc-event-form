@@ -21,4 +21,12 @@ export default defineConfig({
       },
     },
   },
+  'events-api-zod': {
+    input: './specs/events-api.yaml',
+    output: {
+      mode: 'single',
+      target: './src/generated/zod-schemas.ts',
+      client: 'zod',
+    },
+  },
 });

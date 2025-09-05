@@ -4,8 +4,7 @@ import { useGetEventsEventId } from '../generated/events/eventFormsAPI';
 import { 
   validateEvent, 
   validateSection, 
-  getValidationSummary,
-  type ValidationResult 
+  getValidationSummary
 } from '../lib/validation';
 
 interface UseEventValidationOptions {
@@ -16,7 +15,9 @@ interface UseEventValidationOptions {
 export function useEventValidation({ eventId, enabled = true }: UseEventValidationOptions) {
   // Get the current event data
   const { data: event, isLoading } = useGetEventsEventId(eventId, {
-    enabled: enabled && !!eventId
+    query: {
+      enabled: enabled && !!eventId
+    }
   });
 
   // Memoized validation results
@@ -46,7 +47,8 @@ export function useEventValidation({ eventId, enabled = true }: UseEventValidati
   const validateEventSection = useMemo(() => {
     return (sectionName: string) => {
       if (!event || !event.sections) return null;
-      const sectionData = event.sections[sectionName] || [];
+      const sections = event.sections as Record<string, unknown[]>;
+      const sectionData = sections[sectionName] || [];
       return validateSection(sectionName, sectionData, event.eventType);
     };
   }, [event]);
@@ -119,7 +121,7 @@ export function useEventValidation({ eventId, enabled = true }: UseEventValidati
 }
 
 // Hook for real-time field validation
-export function useFieldValidation(eventId: string, fieldPath: string, value: any) {
+export function useFieldValidation(eventId: string, fieldPath: string, value: unknown) {
   const { event } = useEventValidation({ eventId });
   
   return useQuery({
@@ -150,6 +152,6 @@ export function useSectionValidation(eventId: string, sectionName: string) {
     isValid: isSectionValid(sectionName),
     errors: getSectionErrors(sectionName),
     validation: sectionValidation,
-    sectionData: event?.sections?.[sectionName] || []
+    sectionData: (event?.sections as Record<string, unknown[]> | undefined)?.[sectionName] || []
   };
 }

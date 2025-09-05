@@ -69,21 +69,16 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
           <div className="flex items-center gap-3 mb-4">
             <h3 className="text-lg font-medium text-gray-900">Event Status</h3>
             <Badge
-              variant={
-                isPublished
-                  ? "default"
-                  : canPublish
-                  ? "secondary"
-                  : "destructive"
-              }
+              variant={isPublished ? "pill" : canPublish ? "chip" : "pill"}
               size="sm"
-            >
-              {isPublished
-                ? "Published"
-                : canPublish
-                ? "Ready to Publish"
-                : "Draft"}
-            </Badge>
+              label={
+                isPublished
+                  ? "Published"
+                  : canPublish
+                  ? "Ready to Publish"
+                  : "Draft"
+              }
+            />
           </div>
 
           {/* Validation Summary */}
@@ -93,11 +88,15 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
               <span className="text-sm font-medium text-gray-700">
                 Overall Validation:
               </span>
-              <Badge variant={isValid ? "default" : "destructive"} size="sm">
-                {isValid
-                  ? "✓ Valid"
-                  : `✗ ${totalErrors} Error${totalErrors !== 1 ? "s" : ""}`}
-              </Badge>
+              <Badge
+                variant={isValid ? "pill" : "pill"}
+                size="sm"
+                label={
+                  isValid
+                    ? "✓ Valid"
+                    : `✗ ${totalErrors} Error${totalErrors !== 1 ? "s" : ""}`
+                }
+              />
             </div>
 
             {/* Section Status */}
@@ -111,12 +110,14 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
                     ([section, summary]) => (
                       <div key={section} className="flex items-center gap-1">
                         <Badge
-                          variant={summary.valid ? "secondary" : "destructive"}
+                          variant={summary.valid ? "chip" : "pill"}
                           size="sm"
-                        >
-                          {section.charAt(0).toUpperCase() + section.slice(1)}
-                          {summary.valid ? " ✓" : ` ✗ ${summary.errorCount}`}
-                        </Badge>
+                          label={`${
+                            section.charAt(0).toUpperCase() + section.slice(1)
+                          }${
+                            summary.valid ? " ✓" : ` ✗ ${summary.errorCount}`
+                          }`}
+                        />
                       </div>
                     )
                   )}
@@ -173,8 +174,6 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
             <Button
               onClick={handlePublish}
               disabled={!canPublish || publishMutation.isPending}
-              variant={canPublish ? "default" : "secondary"}
-              size="sm"
             >
               {publishMutation.isPending
                 ? "Publishing..."
@@ -185,15 +184,13 @@ export function ValidationStatus({ eventId }: ValidationStatusProps) {
           )}
 
           {isPublished && (
-            <Badge variant="default" size="lg">
-              ✓ Published
-            </Badge>
+            <Badge variant="pill" size="lg" label="✓ Published" />
           )}
         </div>
       </div>
 
       {/* Publishing Error */}
-      {publishMutation.error && (
+      {!!publishMutation.error && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-sm text-red-700">
             Failed to publish event. Please try again.

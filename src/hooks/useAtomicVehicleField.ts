@@ -1,24 +1,25 @@
 import { useState, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { usePutEventsEventIdVehiclesVehicleId } from '../generated/events/eventFormsAPI';
+import type { 
+  VehicleInvolved, 
+  UpdateVehicleRequest
+} from '../generated/events/eventFormsAPI.schemas';
 
-interface UseAtomicVehicleFieldOptions {
+type VehicleFieldName = keyof UpdateVehicleRequest;
+type VehicleFieldValue<K extends VehicleFieldName> = UpdateVehicleRequest[K];
+
+interface UseAtomicVehicleFieldOptions<K extends VehicleFieldName> {
   eventId: string;
   vehicleId: string;
-  fieldName: keyof VehicleUpdateData;
-  initialValue: any;
+  fieldName: K;
+  initialValue: VehicleFieldValue<K>;
   debounceMs?: number;
-  onSuccess?: (data: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (data: VehicleInvolved) => void;
+  onError?: (error: Error) => void;
 }
 
-interface VehicleUpdateData {
-  make?: string;
-  model?: string;
-  licensePlate?: string;
-}
-
-export function useAtomicVehicleField({
+export function useAtomicVehicleField<K extends VehicleFieldName>({
   eventId,
   vehicleId,
   fieldName,
@@ -26,7 +27,7 @@ export function useAtomicVehicleField({
   debounceMs = 500,
   onSuccess,
   onError,
-}: UseAtomicVehicleFieldOptions) {
+}: UseAtomicVehicleFieldOptions<K>) {
   const [localValue, setLocalValue] = useState(initialValue);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,12 +38,12 @@ export function useAtomicVehicleField({
         // React Query will automatically update the cache
         onSuccess?.(data);
       },
-      onError: (err: any) => {
+      onError: (err) => {
         // Revert to initial value on error
         setLocalValue(initialValue);
-        const errorMessage = err?.message || 'Failed to update field';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update field';
         setError(errorMessage);
-        onError?.(err);
+        onError?.(err instanceof Error ? err : new Error('Unknown error'));
       },
       onSettled: () => {
         setIsUpdating(false);
@@ -51,16 +52,16 @@ export function useAtomicVehicleField({
   });
 
   const debouncedSave = useDebouncedCallback(
-    async (value: any) => {
+    async (value: VehicleFieldValue<K>) => {
       if (value === initialValue) return;
       
       setIsUpdating(true);
       setError(null);
       
       // Create update data with only the changed field
-      const updateData: VehicleUpdateData = {
+      const updateData: UpdateVehicleRequest = {
         [fieldName]: value
-      };
+      } as UpdateVehicleRequest;
 
       updateVehicleMutation.mutate({
         eventId,
@@ -71,7 +72,7 @@ export function useAtomicVehicleField({
     debounceMs
   );
 
-  const updateValue = useCallback((newValue: any) => {
+  const updateValue = useCallback((newValue: VehicleFieldValue<K>) => {
     setLocalValue(newValue);
     debouncedSave(newValue);
   }, [debouncedSave]);

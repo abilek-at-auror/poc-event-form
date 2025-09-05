@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useGetEventTypesEventTypeConfig, usePostEvents } from "../generated/events/eventFormsAPI";
+import {
+  useGetEventTypesEventTypeConfig,
+  usePostEvents,
+  useGetEventsEventId
+} from "../generated/events/eventFormsAPI";
 import { Badge } from "@aurornz/lumos/Badge";
-import EventForm from "./EventForm";
 import { EventMetadataSection } from "./sections/EventMetadataSection";
 import { ConditionalSection } from "./ConditionalSection";
 import { PersonsSection } from "./sections/PersonsSection";
@@ -31,12 +33,19 @@ export default function EventFormDemo() {
   const [isCreatingDraft, setIsCreatingDraft] = useState(false);
 
   // Fetch event type configuration when an event type is selected
-  const { data: eventTypeConfig, isLoading: isLoadingConfig } = useGetEventTypesEventTypeConfig(
-    selectedEventType,
-    {
-      enabled: !!selectedEventType,
+  const { data: eventTypeConfig, isLoading: isLoadingConfig } =
+    useGetEventTypesEventTypeConfig(selectedEventType, {
+      query: {
+        enabled: !!selectedEventType
+      }
+    });
+
+  // Fetch event data when we have a draft event ID
+  const { data: event } = useGetEventsEventId(draftEventId!, {
+    query: {
+      enabled: !!draftEventId
     }
-  );
+  });
 
   const createDraftEventMutation = usePostEvents({
     mutation: {
@@ -52,7 +61,12 @@ export default function EventFormDemo() {
 
   // Create draft event when event type is selected
   useEffect(() => {
-    if (selectedEventType && eventTypeConfig && !draftEventId && !isCreatingDraft) {
+    if (
+      selectedEventType &&
+      eventTypeConfig &&
+      !draftEventId &&
+      !isCreatingDraft
+    ) {
       setIsCreatingDraft(true);
       createDraftEventMutation.mutate({
         data: {
@@ -62,7 +76,13 @@ export default function EventFormDemo() {
         }
       });
     }
-  }, [selectedEventType, eventTypeConfig, draftEventId, isCreatingDraft, createDraftEventMutation]);
+  }, [
+    selectedEventType,
+    eventTypeConfig,
+    draftEventId,
+    isCreatingDraft,
+    createDraftEventMutation
+  ]);
 
   const handleEventTypeChange = (eventType: string) => {
     // Reset state when changing event type
@@ -80,7 +100,8 @@ export default function EventFormDemo() {
   };
 
   // Show form sections when we have a draft event
-  const showFormSections = selectedEventType && eventTypeConfig && (draftEventId || isCreatingDraft);
+  const showFormSections =
+    selectedEventType && eventTypeConfig && (draftEventId || isCreatingDraft);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -118,25 +139,28 @@ export default function EventFormDemo() {
                       <div className="text-sm text-gray-600 mb-2">
                         {eventTypeConfig.displayName}
                       </div>
-                      {eventTypeConfig.sections && eventTypeConfig.sections.length > 0 && (
-                        <div className="space-y-1">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            Form Sections:
+                      {eventTypeConfig.sections &&
+                        eventTypeConfig.sections.length > 0 && (
+                          <div className="space-y-1">
+                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              Form Sections:
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {eventTypeConfig.sections.map(
+                                (section, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant={section.required ? "pill" : "chip"}
+                                    size="sm"
+                                    label={`${section.displayName}${
+                                      section.required ? " *" : ""
+                                    }`}
+                                  />
+                                )
+                              )}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-1">
-                            {eventTypeConfig.sections.map((section, index) => (
-                              <Badge
-                                key={index}
-                                variant={section.required ? "default" : "secondary"}
-                                size="sm"
-                              >
-                                {section.displayName}
-                                {section.required && " *"}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   )}
                   {selectedEventType === type.value && isLoadingConfig && (
@@ -152,13 +176,11 @@ export default function EventFormDemo() {
 
         {isCreatingDraft && (
           <div className="text-center py-4">
-            <div className="text-sm text-gray-500">
-              Creating draft event...
-            </div>
+            <div className="text-sm text-gray-500">Creating draft event...</div>
           </div>
         )}
 
-        {createDraftEventMutation.error && (
+        {!!createDraftEventMutation.error && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-700">
               Failed to create draft event. Please try again.
@@ -177,7 +199,8 @@ export default function EventFormDemo() {
                 {eventTypeConfig?.displayName} - Draft
               </h2>
               <p className="text-sm text-gray-600">
-                Fill out the form sections below. Changes are saved automatically.
+                Fill out the form sections below. Changes are saved
+                automatically.
               </p>
             </div>
             <button onClick={handleStartOver} className="btn btn-secondary">
@@ -186,7 +209,10 @@ export default function EventFormDemo() {
           </div>
 
           {/* Event Metadata Section - Always shown */}
-          <EventMetadataSection eventId={draftEventId} />
+          <EventMetadataSection
+            eventId={draftEventId}
+            metadata={event?.metadata}
+          />
 
           {/* Dynamic Sections based on configuration */}
           {eventTypeConfig?.sections?.map((sectionConfig) => (
@@ -195,16 +221,16 @@ export default function EventFormDemo() {
               sectionId={sectionConfig.sectionId!}
               config={sectionConfig}
             >
-              {sectionConfig.sectionId === 'persons' && (
+              {sectionConfig.sectionId === "persons" && (
                 <PersonsSection eventId={draftEventId} />
               )}
-              {sectionConfig.sectionId === 'products' && (
+              {sectionConfig.sectionId === "products" && (
                 <ProductsSection eventId={draftEventId} />
               )}
-              {sectionConfig.sectionId === 'vehicles' && (
+              {sectionConfig.sectionId === "vehicles" && (
                 <VehiclesSection eventId={draftEventId} />
               )}
-              {sectionConfig.sectionId === 'evidence' && (
+              {sectionConfig.sectionId === "evidence" && (
                 <div className="section">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">
                     Evidence
@@ -229,7 +255,9 @@ export default function EventFormDemo() {
           <ul className="text-sm text-gray-600 space-y-2">
             <li>• Dynamic sections based on event type</li>
             <li>• Atomic field updates with optimistic UI</li>
-            <li>• <strong>Polymorphic Zod validation</strong> per event type</li>
+            <li>
+              • <strong>Polymorphic Zod validation</strong> per event type
+            </li>
             <li>• Real-time field & section validation</li>
             <li>• Add/remove dynamic items</li>
             <li>• Draft/publish workflow with validation gates</li>
@@ -242,7 +270,9 @@ export default function EventFormDemo() {
             <li>• React 18 + TypeScript</li>
             <li>• Vite for fast development</li>
             <li>• TanStack Query for state management</li>
-            <li>• <strong>Zod for runtime validation</strong></li>
+            <li>
+              • <strong>Zod for runtime validation</strong>
+            </li>
             <li>• Native fetch API</li>
             <li>• MSW + Orval for API mocking</li>
             <li>• Auror Lumos components</li>

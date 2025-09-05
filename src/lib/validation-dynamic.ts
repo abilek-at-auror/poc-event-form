@@ -3,7 +3,14 @@ import {
   generatedEventSchema,
   hybridSectionSchemas
 } from './validation-with-orval';
-import type { EventResponse, EventTypeConfig, PersonInvolved, ProductInvolved, SectionConfig, VehicleInvolved } from '../generated/events/eventFormsAPI.schemas';
+import type { 
+  EventResponse, 
+  EventTypeConfig, 
+  PersonInvolved, 
+  ProductInvolved, 
+  SectionConfig, 
+  VehicleInvolved 
+} from '../generated/events/eventFormsAPI.schemas';
 
 // Validation result type
 export type ValidationResult = {
@@ -90,7 +97,8 @@ export class DynamicValidator {
           const sectionId = sectionConfig.sectionId;
           if (!sectionId) continue;
 
-          const sectionData = event.sections[sectionId] || [];
+          const sections = event.sections as Record<string, unknown[]>;
+          const sectionData = sections[sectionId] || [];
           const rules = this.getSectionValidationRules(sectionId);
 
           // Check if required section has minimum entries
@@ -152,7 +160,7 @@ export class DynamicValidator {
   /**
    * Validate specific section using dynamic rules
    */
-  validateSection(sectionName: string, sectionData: any[]): ValidationResult {
+  validateSection(sectionName: string, sectionData: unknown[]): ValidationResult {
     const result: ValidationResult = {
       isValid: false,
       canPublish: false,
@@ -200,7 +208,7 @@ export class DynamicValidator {
   /**
    * Get validation summary for UI using dynamic rules
    */
-  getValidationSummary(event: any): {
+  getValidationSummary(event: EventResponse): {
     overallValid: boolean;
     canPublish: boolean;
     totalErrors: number;
@@ -261,14 +269,14 @@ export function createDynamicValidator(eventTypeConfig?: EventTypeConfig): Dynam
 /**
  * Hook-friendly functions that work with React Query
  */
-export function validateEventDynamic(event: any, eventTypeConfig?: EventTypeConfig): ValidationResult {
+export function validateEventDynamic(event: EventResponse, eventTypeConfig?: EventTypeConfig): ValidationResult {
   const validator = createDynamicValidator(eventTypeConfig);
   return validator.validateEvent(event);
 }
 
 export function validateSectionDynamic(
   sectionName: string, 
-  sectionData: PersonInvolved[] | VehicleInvolved[] | ProductInvolved[] | EvidenceInvolved[] , 
+  sectionData: PersonInvolved[] | VehicleInvolved[] | ProductInvolved[] | unknown[], 
   eventTypeConfig?: EventTypeConfig
 ): ValidationResult {
   const validator = createDynamicValidator(eventTypeConfig);
@@ -276,7 +284,7 @@ export function validateSectionDynamic(
 }
 
 export function getValidationSummaryDynamic(
-  event: any, 
+  event: EventResponse, 
   eventTypeConfig?: EventTypeConfig
 ): {
   overallValid: boolean;

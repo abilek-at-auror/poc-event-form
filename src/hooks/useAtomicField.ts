@@ -1,25 +1,29 @@
 import { useState, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePatchEventsEventId } from '../generated/events/eventFormsAPI';
+import { 
+  usePatchEventsEventId,
+  getGetEventsEventIdQueryKey
+} from '../generated/events/eventFormsAPI';
+import type { EventResponse } from '../generated/events/eventFormsAPI.schemas';
 
-interface UseAtomicFieldOptions {
+interface UseAtomicFieldOptions<T = unknown> {
   eventId: string;
   fieldPath: string;
-  initialValue: any;
+  initialValue: T;
   debounceMs?: number;
-  onSuccess?: (data: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (data: EventResponse) => void;
+  onError?: (error: Error) => void;
 }
 
-export function useAtomicField({
+export function useAtomicField<T = unknown>({
   eventId,
   fieldPath,
   initialValue,
   debounceMs = 500,
   onSuccess,
   onError,
-}: UseAtomicFieldOptions) {
+}: UseAtomicFieldOptions<T>) {
   const [localValue, setLocalValue] = useState(initialValue);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,13 +34,14 @@ export function useAtomicField({
       // React Query's built-in optimistic updates
       onMutate: async (variables) => {
         // Cancel outgoing refetches
-        await queryClient.cancelQueries({ queryKey: ['events', eventId] });
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        await queryClient.cancelQueries({ queryKey: eventQueryKey });
         
         // Snapshot previous value for rollback
-        const previousEvent = queryClient.getQueryData(['events', eventId]);
+        const previousEvent = queryClient.getQueryData<EventResponse>(eventQueryKey);
         
         // Optimistically update cache
-        queryClient.setQueryData(['events', eventId], (old: any) => {
+        queryClient.setQueryData<EventResponse>(eventQueryKey, (old) => {
           if (!old) return old;
           return { ...old, ...variables.data };
         });
@@ -46,32 +51,35 @@ export function useAtomicField({
       
       onSuccess: (data) => {
         // Server response updates cache automatically
-        queryClient.setQueryData(['events', eventId], data);
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        queryClient.setQueryData(eventQueryKey, data);
         onSuccess?.(data);
       },
       
-      onError: (err: any, _variables, context) => {
+      onError: (err, _variables, context) => {
         // React Query's automatic rollback
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
         if (context?.previousEvent) {
-          queryClient.setQueryData(['events', eventId], context.previousEvent);
+          queryClient.setQueryData(eventQueryKey, context.previousEvent);
         }
         
         setLocalValue(initialValue);
-        const errorMessage = err?.message || 'Failed to update field';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update field';
         setError(errorMessage);
-        onError?.(err);
+        onError?.(err instanceof Error ? err : new Error('Unknown error'));
       },
       
       onSettled: () => {
         setIsUpdating(false);
         // Refetch to ensure consistency
-        queryClient.invalidateQueries({ queryKey: ['events', eventId] });
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        queryClient.invalidateQueries({ queryKey: eventQueryKey });
       }
     }
   });
 
   const debouncedSave = useDebouncedCallback(
-    async (value: any) => {
+    async (value: T) => {
       if (value === initialValue) return;
 
       setIsUpdating(true);
@@ -81,9 +89,10 @@ export function useAtomicField({
       const updateData = setNestedValue({}, fieldPath, value);
       
       // Optimistic update
-      queryClient.setQueryData(['events', eventId], (old: any) => {
+      const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+      queryClient.setQueryData<EventResponse>(eventQueryKey, (old) => {
         if (!old) return old;
-        return setNestedValue({ ...old }, fieldPath, value);
+        return setNestedValue({ ...old } as Record<string, unknown>, fieldPath, value) as unknown as EventResponse;
       });
 
       // Use the Orval-generated mutation
@@ -95,7 +104,7 @@ export function useAtomicField({
     debounceMs
   );
 
-  const updateValue = useCallback((newValue: any) => {
+  const updateValue = useCallback((newValue: T) => {
     setLocalValue(newValue);
     debouncedSave(newValue);
   }, [debouncedSave]);
@@ -110,16 +119,16 @@ export function useAtomicField({
 }
 
 // Helper function to set nested object values
-function setNestedValue(obj: any, path: string, value: any) {
+function setNestedValue<T>(obj: Record<string, unknown>, path: string, value: T): Record<string, unknown> {
   const keys = path.split('.');
-  let current = obj;
+  let current: Record<string, unknown> = obj;
   
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
-    if (!(key in current) || typeof current[key] !== 'object') {
+    if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
       current[key] = {};
     }
-    current = current[key];
+    current = current[key] as Record<string, unknown>;
   }
   
   current[keys[keys.length - 1]] = value;

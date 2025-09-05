@@ -1,7 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card } from "@aurornz/lumos/Card";
 import { Badge } from "@aurornz/lumos/Badge";
-import { api } from "../lib/api-client";
+import {
+  useGetEventsEventId,
+  useGetEventTypesEventTypeConfig
+} from "../generated/events/eventFormsAPI";
+import type { SectionConfig } from "../generated/events/eventFormsAPI.schemas";
 import { EventMetadataSection } from "./sections/EventMetadataSection";
 import { PersonsSection } from "./sections/PersonsSection";
 import { ProductsSection } from "./sections/ProductsSection";
@@ -13,20 +16,18 @@ interface EventFormProps {
 }
 
 export default function EventForm({ eventId }: EventFormProps) {
-  const {
-    data: event,
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ["events", eventId],
-    queryFn: () => api.get(`/events/${eventId}`)
-  });
+  // Get event data using Orval-generated hook
+  const { data: event, isLoading, error } = useGetEventsEventId(eventId);
 
-  const { data: config } = useQuery({
-    queryKey: ["event-types", event?.eventType, "config"],
-    queryFn: () => api.get(`/event-types/${event?.eventType}/config`),
-    enabled: !!event?.eventType
-  });
+  // Get event type configuration using Orval-generated hook
+  const { data: config } = useGetEventTypesEventTypeConfig(
+    event?.eventType || "",
+    {
+      query: {
+        enabled: !!event?.eventType
+      }
+    }
+  );
 
   if (isLoading) {
     return (
@@ -58,8 +59,10 @@ export default function EventForm({ eventId }: EventFormProps) {
     );
   }
 
-  const getSectionConfig = (sectionId: string) => {
-    return config?.sections?.find((s: any) => s.sectionId === sectionId);
+  const getSectionConfig = (sectionId: string): SectionConfig | undefined => {
+    return config?.sections?.find(
+      (s: SectionConfig) => s.sectionId === sectionId
+    );
   };
 
   return (
@@ -76,14 +79,13 @@ export default function EventForm({ eventId }: EventFormProps) {
           <div className="text-right">
             <p className="text-sm text-blue-700">Status</p>
             <Badge
+              label={event.status === "published" ? "Published" : "Draft"}
               className={
                 event.status === "published"
                   ? "bg-green-100 text-green-800"
                   : "bg-gray-100 text-gray-800"
               }
-            >
-              {event.status === "published" ? "Published" : "Draft"}
-            </Badge>
+            />
           </div>
         </div>
       </Card>
@@ -120,7 +122,7 @@ export default function EventForm({ eventId }: EventFormProps) {
             Active Sections for {config.displayName}
           </h3>
           <div className="space-y-2">
-            {config.sections?.map((section: any) => (
+            {config.sections?.map((section: SectionConfig) => (
               <div
                 key={section.sectionId}
                 className="flex items-center justify-between p-3 bg-white rounded border"
@@ -128,9 +130,10 @@ export default function EventForm({ eventId }: EventFormProps) {
                 <div>
                   <span className="font-medium">{section.displayName}</span>
                   {section.required && (
-                    <Badge className="ml-2 text-xs bg-red-100 text-red-800">
-                      Required
-                    </Badge>
+                    <Badge
+                      label="Required"
+                      className="ml-2 text-xs bg-red-100 text-red-800"
+                    />
                   )}
                 </div>
                 <span className="text-sm text-gray-500">

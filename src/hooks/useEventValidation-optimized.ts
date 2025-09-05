@@ -215,7 +215,6 @@ export function useEventValidationOptimized({
  */
 export function useSectionValidationOptimized(eventId: string, sectionName: string) {
   const { 
-    event, 
     eventTypeConfig,
     sectionsData,
     validateEventSection, 

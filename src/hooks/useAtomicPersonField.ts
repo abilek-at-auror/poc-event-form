@@ -1,24 +1,25 @@
 import { useState, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { usePutEventsEventIdPersonsPersonId } from '../generated/events/eventFormsAPI';
+import type { 
+  PersonInvolved, 
+  UpdatePersonRequest
+} from '../generated/events/eventFormsAPI.schemas';
 
-interface UseAtomicPersonFieldOptions {
+type PersonFieldName = keyof UpdatePersonRequest;
+type PersonFieldValue<K extends PersonFieldName> = UpdatePersonRequest[K];
+
+interface UseAtomicPersonFieldOptions<K extends PersonFieldName> {
   eventId: string;
   personId: string;
-  fieldName: keyof PersonUpdateData;
-  initialValue: any;
+  fieldName: K;
+  initialValue: PersonFieldValue<K>;
   debounceMs?: number;
-  onSuccess?: (data: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (data: PersonInvolved) => void;
+  onError?: (error: Error) => void;
 }
 
-interface PersonUpdateData {
-  name?: string;
-  role?: string;
-  age?: number;
-}
-
-export function useAtomicPersonField({
+export function useAtomicPersonField<K extends PersonFieldName>({
   eventId,
   personId,
   fieldName,
@@ -26,7 +27,7 @@ export function useAtomicPersonField({
   debounceMs = 500,
   onSuccess,
   onError,
-}: UseAtomicPersonFieldOptions) {
+}: UseAtomicPersonFieldOptions<K>) {
   const [localValue, setLocalValue] = useState(initialValue);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,12 +38,12 @@ export function useAtomicPersonField({
         // React Query will automatically update the cache
         onSuccess?.(data);
       },
-      onError: (err: any) => {
+      onError: (err) => {
         // Revert to initial value on error
         setLocalValue(initialValue);
-        const errorMessage = err?.message || 'Failed to update field';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update field';
         setError(errorMessage);
-        onError?.(err);
+        onError?.(err instanceof Error ? err : new Error('Unknown error'));
       },
       onSettled: () => {
         setIsUpdating(false);
@@ -51,16 +52,16 @@ export function useAtomicPersonField({
   });
 
   const debouncedSave = useDebouncedCallback(
-    async (value: any) => {
+    async (value: PersonFieldValue<K>) => {
       if (value === initialValue) return;
       
       setIsUpdating(true);
       setError(null);
       
       // Create update data with only the changed field
-      const updateData: PersonUpdateData = {
+      const updateData: UpdatePersonRequest = {
         [fieldName]: value
-      };
+      } as UpdatePersonRequest;
 
       updatePersonMutation.mutate({
         eventId,
@@ -71,7 +72,7 @@ export function useAtomicPersonField({
     debounceMs
   );
 
-  const updateValue = useCallback((newValue: any) => {
+  const updateValue = useCallback((newValue: PersonFieldValue<K>) => {
     setLocalValue(newValue);
     debouncedSave(newValue);
   }, [debouncedSave]);

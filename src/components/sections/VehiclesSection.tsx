@@ -6,7 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetEventsEventIdVehicles,
   useDeleteEventsEventIdVehiclesVehicleId,
-  getGetEventsEventIdQueryKey
+  getGetEventsEventIdQueryKey,
+  getGetEventsEventIdVehiclesQueryKey
 } from "../../generated/events/eventFormsAPI";
 import type {
   EventResponse,
@@ -47,6 +48,7 @@ export function VehiclesSection({ eventId }: VehiclesSectionProps) {
       onSuccess: (_, variables) => {
         // Update the main event cache to remove the deleted vehicle (if needed for validation)
         const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        const vehiclesQueryKey = getGetEventsEventIdVehiclesQueryKey(eventId);
         queryClient.setQueryData(
           eventQueryKey,
           (oldEvent: EventResponse | undefined) => {
@@ -70,7 +72,11 @@ export function VehiclesSection({ eventId }: VehiclesSectionProps) {
           }
         );
 
-        // React Query will automatically invalidate and refetch the vehicles list
+        queryClient.invalidateQueries({
+          queryKey: vehiclesQueryKey,
+          refetchType: "active"
+        });
+
       }
     }
   });

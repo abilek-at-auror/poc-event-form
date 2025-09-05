@@ -6,7 +6,8 @@ import { AtomicPersonSelect } from "../ui/AtomicPersonSelect";
 import {
   useGetEventsEventIdPersons,
   useDeleteEventsEventIdPersonsPersonId,
-  getGetEventsEventIdQueryKey
+  getGetEventsEventIdQueryKey,
+  getGetEventsEventIdPersonsQueryKey
 } from "../../generated/events/eventFormsAPI";
 import type {
   EventResponse,
@@ -54,6 +55,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
       onSuccess: (_, variables) => {
         // Update the main event cache to remove the deleted person
         const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        const personsQueryKey = getGetEventsEventIdPersonsQueryKey(eventId);
         queryClient.setQueryData(
           eventQueryKey,
           (oldEvent: EventResponse | undefined) => {
@@ -74,7 +76,11 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
           }
         );
 
-        // React Query will automatically invalidate and refetch the persons list
+        queryClient.invalidateQueries({
+          queryKey: personsQueryKey,
+          refetchType: "active"
+        });
+
       }
     }
   });

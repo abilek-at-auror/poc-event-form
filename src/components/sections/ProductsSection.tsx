@@ -5,7 +5,8 @@ import { AtomicProductInput } from "../ui/AtomicProductInput";
 import {
   useGetEventsEventIdProducts,
   useDeleteEventsEventIdProductsProductId,
-  getGetEventsEventIdQueryKey
+  getGetEventsEventIdQueryKey,
+  getGetEventsEventIdProductsQueryKey
 } from "../../generated/events/eventFormsAPI";
 import { useQueryClient } from "@tanstack/react-query";
 import type {
@@ -42,6 +43,7 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
       onSuccess: (_, variables) => {
         // Update the main event cache to remove the deleted product
         const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        const productsQueryKey = getGetEventsEventIdProductsQueryKey(eventId);
         queryClient.setQueryData(
           eventQueryKey,
           (oldEvent: EventResponse | undefined) => {
@@ -64,6 +66,11 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
             return updatedEvent;
           }
         );
+
+        queryClient.invalidateQueries({
+          queryKey: productsQueryKey,
+          refetchType: "active"
+        });
 
         // React Query will automatically invalidate and refetch the products list
       }

@@ -1,71 +1,106 @@
+import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
-import { v4 as uuidv4 } from "uuid";
-import { AtomicInput } from "../ui/AtomicInput";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useGetEventsEventId, usePatchEventsEventId } from "../../generated/events/eventFormsAPI";
-import type { VehicleInvolved } from "../../generated/events/eventFormsAPI.schemas";
+import { AtomicVehicleInput } from "../ui/AtomicVehicleInput";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useGetEventsEventIdVehicles,
+  useDeleteEventsEventIdVehiclesVehicleId,
+  getGetEventsEventIdQueryKey
+} from "../../generated/events/eventFormsAPI";
+import type {
+  EventResponse,
+  VehicleInvolved
+} from "../../generated/events/eventFormsAPI.schemas";
+import { useSectionValidationOptimized } from "../../hooks/useEventValidation-optimized";
+import { AddVehicleModal } from "./AddVehicleModal";
 
 interface VehiclesSectionProps {
   eventId: string;
 }
 
 export function VehiclesSection({ eventId }: VehiclesSectionProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
-  
-  // Fetch event data to get current vehicles
-  const { data: event } = useGetEventsEventId(eventId);
-  const vehicles = event?.sections?.vehicles || [];
 
-  const updateEventMutation = usePatchEventsEventId({
+  // Fetch vehicles data directly from section endpoint
+  const { data: vehicles = [] } = useGetEventsEventIdVehicles(eventId);
+
+  // Section validation using optimized approach with direct API calls
+  const { errors, sectionConfig, isRequired, minimumEntries, displayName } =
+    useSectionValidationOptimized(eventId, "vehicles");
+
+  // Debug logging for optimized validation
+  console.log("VehiclesSection Debug:", {
+    vehiclesCount: vehicles.length,
+    vehicles: vehicles.map((v) => ({ id: v.id, make: v.make, model: v.model })),
+    sectionConfig,
+    isRequired,
+    minimumEntries,
+    displayName,
+    errors
+  });
+
+  // Mutation for deleting vehicles
+  const deleteVehicleMutation = useDeleteEventsEventIdVehiclesVehicleId({
     mutation: {
-      onSuccess: (data) => {
-        queryClient.setQueryData(["events", eventId], data);
+      onSuccess: (_, variables) => {
+        // Update the main event cache to remove the deleted vehicle (if needed for validation)
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        queryClient.setQueryData(
+          eventQueryKey,
+          (oldEvent: EventResponse | undefined) => {
+            if (!oldEvent) return oldEvent;
+
+            const updatedEvent = {
+              ...oldEvent,
+              sections: {
+                ...oldEvent.sections,
+                vehicles: (oldEvent.sections?.vehicles || []).filter(
+                  (v: VehicleInvolved) => v.id !== variables.vehicleId
+                )
+              }
+            } as EventResponse;
+
+            console.log(
+              "Updated main event cache after vehicle delete:",
+              updatedEvent
+            );
+            return updatedEvent;
+          }
+        );
+
+        // React Query will automatically invalidate and refetch the vehicles list
       }
     }
   });
 
-  const addVehicle = () => {
-    const newVehicle = {
-      id: uuidv4(),
-      make: "",
-      model: "",
-      licensePlate: ""
-    };
-
-    updateEventMutation.mutate({
-      eventId,
-      data: {
-        sections: {
-          vehicles: [...vehicles, newVehicle]
-        }
-      }
-    });
-  };
-
   const removeVehicle = (vehicleId: string) => {
-    updateEventMutation.mutate({
+    deleteVehicleMutation.mutate({
       eventId,
-      data: {
-        sections: {
-          vehicles: vehicles.filter((v) => v.id !== vehicleId)
-        }
-      }
+      vehicleId
     });
   };
 
   return (
     <Card className="p-6 space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Vehicles Involved
-        </h3>
-        <Button
-          onClick={addVehicle}
-          disabled={updateEventMutation.isPending}
-        >
-          + Add Vehicle
-        </Button>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {displayName || "Vehicles Involved"}
+            {isRequired && <span className="text-red-500 ml-1">*</span>}
+          </h3>
+          {errors.length > 0 && (
+            <div className="mt-1">
+              {errors.map((error, index) => (
+                <p key={index} className="text-sm text-red-600">
+                  {error}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+        <Button onClick={() => setIsModalOpen(true)}>+ Add Vehicle</Button>
       </div>
 
       {vehicles.length === 0 ? (
@@ -86,7 +121,7 @@ export function VehiclesSection({ eventId }: VehiclesSectionProps) {
                 </h4>
                 <button
                   onClick={() => removeVehicle(vehicle.id)}
-                  disabled={updateEventMutation.isPending}
+                  disabled={deleteVehicleMutation.isPending}
                   className="text-red-600 hover:text-red-700 text-sm px-2 py-1 rounded"
                 >
                   Remove
@@ -94,27 +129,30 @@ export function VehiclesSection({ eventId }: VehiclesSectionProps) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <AtomicInput
+                <AtomicVehicleInput
                   eventId={eventId}
-                  fieldPath={`sections.vehicles.${index}.make`}
+                  vehicleId={vehicle.id}
+                  fieldName="make"
                   initialValue={vehicle.make || ""}
                   label="Make"
                   placeholder="e.g., Toyota"
                   required
                 />
 
-                <AtomicInput
+                <AtomicVehicleInput
                   eventId={eventId}
-                  fieldPath={`sections.vehicles.${index}.model`}
+                  vehicleId={vehicle.id}
+                  fieldName="model"
                   initialValue={vehicle.model || ""}
                   label="Model"
                   placeholder="e.g., Camry"
                   required
                 />
 
-                <AtomicInput
+                <AtomicVehicleInput
                   eventId={eventId}
-                  fieldPath={`sections.vehicles.${index}.licensePlate`}
+                  vehicleId={vehicle.id}
+                  fieldName="licensePlate"
                   initialValue={vehicle.licensePlate || ""}
                   label="License Plate"
                   placeholder="e.g., ABC-123"
@@ -124,6 +162,15 @@ export function VehiclesSection({ eventId }: VehiclesSectionProps) {
           ))}
         </div>
       )}
+
+      <AddVehicleModal
+        eventId={eventId}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          setIsModalOpen(false);
+        }}
+      />
     </Card>
   );
 }

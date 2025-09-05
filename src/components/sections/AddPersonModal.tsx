@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
-import { v4 as uuidv4 } from "uuid";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePostEventsEventIdPersons } from "../../generated/events/eventFormsAPI";
+import {
+  usePostEventsEventIdPersons,
+  getGetEventsEventIdPersonsQueryKey,
+  getGetEventsEventIdQueryKey
+} from "../../generated/events/eventFormsAPI";
 import type {
-  PersonInvolved,
-  PersonInvolvedRole
+  PersonInvolvedRole,
+  EventResponse
 } from "../../generated/events/eventFormsAPI.schemas";
 
 interface AddPersonModalProps {
   eventId: string;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void; // Optional callback after successful save
+  onSuccess?: () => void;
 }
 
 const roleOptions = [
@@ -23,6 +26,9 @@ const roleOptions = [
   { value: "employee", label: "Employee" }
 ];
 
+/**
+ * Modal for adding new persons to an event
+ */
 export function AddPersonModal({
   eventId,
   isOpen,
@@ -36,11 +42,63 @@ export function AddPersonModal({
     age: ""
   });
 
-  // Mutation for adding person
+  // Simple mutation - just invalidate cache after success
   const addPersonMutation = usePostEventsEventIdPersons({
     mutation: {
       onSuccess: (data) => {
-        // React Query will automatically invalidate and refetch the persons list
+        console.log("Person added successfully:", data);
+
+        // Invalidate queries using orval-generated query keys
+        const personsQueryKey = getGetEventsEventIdPersonsQueryKey(eventId);
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+
+        console.log("Invalidating queries:", {
+          personsQueryKey,
+          eventQueryKey
+        });
+
+        // Check current cache state before updating
+        const currentEvent = queryClient.getQueryData(eventQueryKey);
+        console.log("Current event cache before update:", currentEvent);
+
+        // Update the main event cache to include the new person
+        queryClient.setQueryData(
+          eventQueryKey,
+          (oldEvent: EventResponse | undefined) => {
+            if (!oldEvent) return oldEvent;
+
+            const updatedEvent = {
+              ...oldEvent,
+              sections: {
+                ...oldEvent.sections,
+                persons: [...(oldEvent.sections?.persons || []), data]
+              }
+            } as EventResponse;
+
+            console.log("Updated main event cache:", updatedEvent);
+            return updatedEvent;
+          }
+        );
+
+        // Force invalidation with more aggressive options
+        queryClient.invalidateQueries({
+          queryKey: personsQueryKey,
+          refetchType: "active"
+        });
+        queryClient.invalidateQueries({
+          queryKey: eventQueryKey,
+          refetchType: "active"
+        });
+
+        // Also try invalidating all queries related to this event
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            const key = query.queryKey[0] as string;
+            return key.includes(`/events/${eventId}`);
+          }
+        });
+
+        console.log("Cache invalidation completed");
 
         // Reset form
         setFormData({ name: "", role: "suspect", age: "" });
@@ -53,7 +111,6 @@ export function AddPersonModal({
       },
       onError: (error) => {
         console.error("Failed to add person:", error);
-        // Could add error handling UI here
       }
     }
   });
@@ -61,7 +118,8 @@ export function AddPersonModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Use mutation to add person - the backend will assign the ID
+    console.log("Submitting person:", formData);
+
     addPersonMutation.mutate({
       eventId,
       data: {
@@ -79,7 +137,7 @@ export function AddPersonModal({
       <Card className="p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            Add New Person
+            Add New Person (Simple)
           </h3>
           <button
             onClick={onClose}

@@ -3,12 +3,18 @@ import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
 import { AtomicPersonInput } from "../ui/AtomicPersonInput";
 import { AtomicPersonSelect } from "../ui/AtomicPersonSelect";
-import { 
-  useGetEventsEventIdPersons, 
-  useDeleteEventsEventIdPersonsPersonId
+import {
+  useGetEventsEventIdPersons,
+  useDeleteEventsEventIdPersonsPersonId,
+  getGetEventsEventIdQueryKey
 } from "../../generated/events/eventFormsAPI";
-import { useSectionValidation } from "../../hooks/useEventValidation";
+import type {
+  EventResponse,
+  PersonInvolved
+} from "../../generated/events/eventFormsAPI.schemas";
+import { useSectionValidationDynamic } from "../../hooks/useEventValidation-dynamic";
 import { AddPersonModal } from "./AddPersonModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PersonsSectionProps {
   eventId: string;
@@ -23,17 +29,51 @@ const roleOptions = [
 
 export function PersonsSection({ eventId }: PersonsSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const queryClient = useQueryClient();
+
   // Fetch persons data directly from section endpoint
   const { data: persons = [] } = useGetEventsEventIdPersons(eventId);
 
-  // Section validation
-  const { errors } = useSectionValidation(eventId, 'persons');
+  // Section validation using dynamic SectionConfig rules from API
+  const { errors, sectionConfig, isRequired, minimumEntries, displayName } =
+    useSectionValidationDynamic(eventId, "persons");
+
+  // Debug logging for dynamic validation
+  console.log("Dynamic PersonsSection Debug:", {
+    personsCount: persons.length,
+    sectionConfig,
+    isRequired,
+    minimumEntries,
+    displayName,
+    errors
+  });
 
   // Mutation for deleting persons
   const deletePersonMutation = useDeleteEventsEventIdPersonsPersonId({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
+        // Update the main event cache to remove the deleted person
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        queryClient.setQueryData(
+          eventQueryKey,
+          (oldEvent: EventResponse | undefined) => {
+            if (!oldEvent) return oldEvent;
+
+            const updatedEvent = {
+              ...oldEvent,
+              sections: {
+                ...oldEvent.sections,
+                persons: (oldEvent.sections?.persons || []).filter(
+                  (p: PersonInvolved) => p.id !== variables.personId
+                )
+              }
+            } as EventResponse;
+
+            console.log("Updated main event cache after delete:", updatedEvent);
+            return updatedEvent;
+          }
+        );
+
         // React Query will automatically invalidate and refetch the persons list
       }
     }
@@ -51,7 +91,8 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            Persons Involved
+            {displayName || "Persons Involved"}
+            {isRequired && <span className="text-red-500 ml-1">*</span>}
           </h3>
           {errors.length > 0 && (
             <div className="mt-1">
@@ -63,11 +104,7 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
             </div>
           )}
         </div>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-        >
-          + Add Person
-        </Button>
+        <Button onClick={() => setIsModalOpen(true)}>+ Add Person</Button>
       </div>
 
       {persons.length === 0 ? (
@@ -134,6 +171,9 @@ export function PersonsSection({ eventId }: PersonsSectionProps) {
         eventId={eventId}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          console.log("Person added successfully, validation should update");
+        }}
       />
     </Card>
   );

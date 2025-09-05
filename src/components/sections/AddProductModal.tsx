@@ -2,8 +2,15 @@ import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePostEventsEventIdProducts } from "../../generated/events/eventFormsAPI";
-import type { ProductInvolved } from "../../generated/events/eventFormsAPI.schemas";
+import {
+  usePostEventsEventIdProducts,
+  getGetEventsEventIdProductsQueryKey,
+  getGetEventsEventIdQueryKey
+} from "../../generated/events/eventFormsAPI";
+import type {
+  ProductInvolved,
+  EventResponse
+} from "../../generated/events/eventFormsAPI.schemas";
 
 interface AddProductModalProps {
   eventId: string;
@@ -29,8 +36,62 @@ export function AddProductModal({
   // Mutation for adding product
   const addProductMutation = usePostEventsEventIdProducts({
     mutation: {
-      onSuccess: (data) => {
-        // React Query will automatically invalidate and refetch the products list
+      onSuccess: (data: ProductInvolved) => {
+        console.log("Product added successfully:", data);
+
+        // Invalidate queries using orval-generated query keys
+        const productsQueryKey = getGetEventsEventIdProductsQueryKey(eventId);
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+
+        console.log("Invalidating queries:", {
+          productsQueryKey,
+          eventQueryKey
+        });
+
+        // Check current cache state before updating
+        const currentEvent = queryClient.getQueryData(eventQueryKey);
+        console.log("Current event cache before update:", currentEvent);
+
+        // Update the main event cache to include the new product
+        queryClient.setQueryData(
+          eventQueryKey,
+          (oldEvent: EventResponse | undefined) => {
+            if (!oldEvent) return oldEvent;
+
+            const updatedEvent = {
+              ...oldEvent,
+              sections: {
+                ...oldEvent.sections,
+                products: [...(oldEvent.sections?.products || []), data]
+              }
+            } as EventResponse;
+
+            console.log("Updated main event cache:", updatedEvent);
+            return updatedEvent;
+          }
+        );
+
+        // Explicit cache invalidation with aggressive options
+        queryClient.invalidateQueries({
+          queryKey: productsQueryKey,
+          refetchType: "active"
+        });
+
+        // Also invalidate the main event query
+        queryClient.invalidateQueries({
+          queryKey: eventQueryKey,
+          refetchType: "active"
+        });
+
+        // Invalidate all event-related queries as a fallback
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            return query.queryKey.some(
+              (key) => typeof key === "string" && key.includes(eventId)
+            );
+          },
+          refetchType: "active"
+        });
 
         // Reset form
         setFormData({ name: "", sku: "", quantity: "1", unitValue: "" });

@@ -2,8 +2,15 @@ import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePostEventsEventIdVehicles } from "../../generated/events/eventFormsAPI";
-import type { VehicleInvolved } from "../../generated/events/eventFormsAPI.schemas";
+import {
+  usePostEventsEventIdVehicles,
+  getGetEventsEventIdVehiclesQueryKey,
+  getGetEventsEventIdQueryKey
+} from "../../generated/events/eventFormsAPI";
+import type {
+  VehicleInvolved,
+  EventResponse
+} from "../../generated/events/eventFormsAPI.schemas";
 
 interface AddVehicleModalProps {
   eventId: string;
@@ -28,8 +35,62 @@ export function AddVehicleModal({
   // Mutation for adding vehicle
   const addVehicleMutation = usePostEventsEventIdVehicles({
     mutation: {
-      onSuccess: (data) => {
-        // React Query will automatically invalidate and refetch the vehicles list
+      onSuccess: (data: VehicleInvolved) => {
+        console.log("Vehicle added successfully:", data);
+
+        // Invalidate queries using orval-generated query keys
+        const vehiclesQueryKey = getGetEventsEventIdVehiclesQueryKey(eventId);
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+
+        console.log("Invalidating queries:", {
+          vehiclesQueryKey,
+          eventQueryKey
+        });
+
+        // Check current cache state before updating
+        const currentEvent = queryClient.getQueryData(eventQueryKey);
+        console.log("Current event cache before update:", currentEvent);
+
+        // Update the main event cache to include the new vehicle
+        queryClient.setQueryData(
+          eventQueryKey,
+          (oldEvent: EventResponse | undefined) => {
+            if (!oldEvent) return oldEvent;
+
+            const updatedEvent = {
+              ...oldEvent,
+              sections: {
+                ...oldEvent.sections,
+                vehicles: [...(oldEvent.sections?.vehicles || []), data]
+              }
+            } as EventResponse;
+
+            console.log("Updated main event cache:", updatedEvent);
+            return updatedEvent;
+          }
+        );
+
+        // Explicit cache invalidation with aggressive options
+        queryClient.invalidateQueries({
+          queryKey: vehiclesQueryKey,
+          refetchType: "active"
+        });
+
+        // Also invalidate the main event query
+        queryClient.invalidateQueries({
+          queryKey: eventQueryKey,
+          refetchType: "active"
+        });
+
+        // Invalidate all event-related queries as a fallback
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            return query.queryKey.some(
+              (key) => typeof key === "string" && key.includes(eventId)
+            );
+          },
+          refetchType: "active"
+        });
 
         // Reset form
         setFormData({ make: "", model: "", licensePlate: "" });

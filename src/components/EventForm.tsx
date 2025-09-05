@@ -96,30 +96,21 @@ export default function EventForm({ eventId }: EventFormProps) {
         sectionId="persons"
         config={getSectionConfig("persons")}
       >
-        <PersonsSection
-          eventId={eventId}
-          persons={event.sections?.persons || []}
-        />
+        <PersonsSection eventId={eventId} />
       </ConditionalSection>
 
       <ConditionalSection
         sectionId="products"
         config={getSectionConfig("products")}
       >
-        <ProductsSection
-          eventId={eventId}
-          products={event.sections?.products || []}
-        />
+        <ProductsSection eventId={eventId} />
       </ConditionalSection>
 
       <ConditionalSection
         sectionId="vehicles"
         config={getSectionConfig("vehicles")}
       >
-        <VehiclesSection
-          eventId={eventId}
-          vehicles={event.sections?.vehicles || []}
-        />
+        <VehiclesSection eventId={eventId} />
       </ConditionalSection>
 
       {/* Configuration Display for Reference */}

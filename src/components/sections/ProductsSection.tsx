@@ -2,10 +2,16 @@ import { useState } from "react";
 import { Card } from "@aurornz/lumos/Card";
 import { Button } from "@aurornz/lumos/Button";
 import { AtomicProductInput } from "../ui/AtomicProductInput";
-import { 
-  useGetEventsEventIdProducts, 
-  useDeleteEventsEventIdProductsProductId
+import {
+  useGetEventsEventIdProducts,
+  useDeleteEventsEventIdProductsProductId,
+  getGetEventsEventIdQueryKey
 } from "../../generated/events/eventFormsAPI";
+import { useQueryClient } from "@tanstack/react-query";
+import type {
+  EventResponse,
+  ProductInvolved
+} from "../../generated/events/eventFormsAPI.schemas";
 import { useSectionValidation } from "../../hooks/useEventValidation";
 import { AddProductModal } from "./AddProductModal";
 
@@ -15,17 +21,50 @@ interface ProductsSectionProps {
 
 export function ProductsSection({ eventId }: ProductsSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const queryClient = useQueryClient();
+
   // Fetch products data directly from section endpoint
   const { data: products = [] } = useGetEventsEventIdProducts(eventId);
 
   // Section validation
-  const { errors } = useSectionValidation(eventId, 'products');
+  const { errors } = useSectionValidation(eventId, "products");
+
+  // Debug logging
+  console.log("ProductsSection Debug:", {
+    productsCount: products.length,
+    products: products.map((p) => ({ id: p.id, name: p.name })),
+    errors
+  });
 
   // Mutation for deleting products
   const deleteProductMutation = useDeleteEventsEventIdProductsProductId({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
+        // Update the main event cache to remove the deleted product
+        const eventQueryKey = getGetEventsEventIdQueryKey(eventId);
+        queryClient.setQueryData(
+          eventQueryKey,
+          (oldEvent: EventResponse | undefined) => {
+            if (!oldEvent) return oldEvent;
+
+            const updatedEvent = {
+              ...oldEvent,
+              sections: {
+                ...oldEvent.sections,
+                products: (oldEvent.sections?.products || []).filter(
+                  (p: ProductInvolved) => p.id !== variables.productId
+                )
+              }
+            } as EventResponse;
+
+            console.log(
+              "Updated main event cache after product delete:",
+              updatedEvent
+            );
+            return updatedEvent;
+          }
+        );
+
         // React Query will automatically invalidate and refetch the products list
       }
     }
@@ -55,11 +94,7 @@ export function ProductsSection({ eventId }: ProductsSectionProps) {
             </div>
           )}
         </div>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-        >
-          + Add Product
-        </Button>
+        <Button onClick={() => setIsModalOpen(true)}>+ Add Product</Button>
       </div>
 
       {products.length === 0 ? (

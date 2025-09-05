@@ -5,6 +5,7 @@ import {
   getEventsEventIdVehiclesResponseItem,
   getEventsEventIdProductsResponseItem
 } from '../generated/zod-schemas';
+import type { EventResponse } from '../generated/events/eventFormsAPI.schemas';
 
 // Re-export the generated Zod schemas with cleaner names
 export const generatedEventSchema = getEventsEventIdResponse;
@@ -108,7 +109,7 @@ export const hybridEventTypeValidationConfig = {
 };
 
 // Validate entire event using hybrid approach
-export function validateEventWithOrval(event: any): ValidationResult {
+export function validateEventWithOrval(event: EventResponse): ValidationResult {
   const result: ValidationResult = {
     isValid: false,
     canPublish: false,
@@ -166,7 +167,7 @@ export function validateEventWithOrval(event: any): ValidationResult {
 }
 
 // Validate specific section using generated schemas
-export function validateSectionWithOrval(sectionName: string, sectionData: any[], eventType: string): ValidationResult {
+export function validateSectionWithOrval(sectionName: string, sectionData: unknown[], eventType: string): ValidationResult {
   const result: ValidationResult = {
     isValid: false,
     canPublish: false,

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { EventResponse } from '../generated/events/eventFormsAPI.schemas';
 
 // Base schemas for common field types
 const personSchema = z.object({
@@ -69,7 +70,7 @@ const vandalismEventSchema = baseEventSchema.extend({
     vehicles: z.array(vehicleSchema).optional(),
     products: z.array(productSchema).optional(),
     // Evidence section would be added here when implemented
-    evidence: z.array(z.any()).min(1, 'At least one piece of evidence is required for vandalism reports').optional()
+    evidence: z.array(z.unknown()).min(1, 'At least one piece of evidence is required for vandalism reports').optional()
   })
 });
 
@@ -85,7 +86,7 @@ export const sectionSchemas = {
   persons: z.array(personSchema),
   vehicles: z.array(vehicleSchema),
   products: z.array(productSchema),
-  evidence: z.array(z.any())
+  evidence: z.array(z.unknown())
 };
 
 // Validation result type
@@ -124,7 +125,7 @@ export const eventTypeValidationConfig = {
 };
 
 // Validate entire event
-export function validateEvent(event: any): ValidationResult {
+export function validateEvent(event: EventResponse | unknown): ValidationResult {
   const result: ValidationResult = {
     isValid: false,
     canPublish: false,
@@ -147,7 +148,7 @@ export function validateEvent(event: any): ValidationResult {
   } catch (error) {
     if (error instanceof z.ZodError && error.issues && Array.isArray(error.issues)) {
       // Process validation errors
-      error.issues.forEach((err: any) => {
+      error.issues.forEach((err: z.ZodIssue) => {
         const path = err.path.join('.');
         
         if (err.path && err.path.length > 0) {
@@ -182,7 +183,7 @@ export function validateEvent(event: any): ValidationResult {
 }
 
 // Validate specific section
-export function validateSection(sectionName: string, sectionData: any[], eventType: string): ValidationResult {
+export function validateSection(sectionName: string, sectionData: unknown[], eventType: string): ValidationResult {
   const result: ValidationResult = {
     isValid: false,
     canPublish: false,
@@ -215,7 +216,7 @@ export function validateSection(sectionName: string, sectionData: any[], eventTy
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      error.issues.forEach((err: any) => {
+      error.issues.forEach((err: z.ZodIssue) => {
         const path = `${sectionName}.${err.path.join('.')}`;
         result.fieldErrors[path] = err.message;
         
@@ -231,19 +232,19 @@ export function validateSection(sectionName: string, sectionData: any[], eventTy
 }
 
 // Validate field value
-export function validateField(fieldPath: string, value: any, eventData: any): { isValid: boolean; error?: string } {
+export function validateField(fieldPath: string, value: unknown, eventData: unknown): { isValid: boolean; error?: string } {
   try {
     // Create a test object with the field value
-    const testData = { ...eventData };
+    const testData = { ...(eventData as Record<string, unknown>) };
     const pathParts = fieldPath.split('.');
     
     // Set the field value in the test data
-    let current = testData;
+    let current = testData as Record<string, unknown>;
     for (let i = 0; i < pathParts.length - 1; i++) {
       if (!current[pathParts[i]]) {
         current[pathParts[i]] = {};
       }
-      current = current[pathParts[i]];
+      current = current[pathParts[i]] as Record<string, unknown>;
     }
     current[pathParts[pathParts.length - 1]] = value;
 
@@ -255,7 +256,7 @@ export function validateField(fieldPath: string, value: any, eventData: any): { 
       isValid: !fieldError,
       error: fieldError
     };
-  } catch (error) {
+  } catch {
     return {
       isValid: false,
       error: 'Validation error'
@@ -264,14 +265,15 @@ export function validateField(fieldPath: string, value: any, eventData: any): { 
 }
 
 // Get validation summary for UI
-export function getValidationSummary(event: any): {
+export function getValidationSummary(event: EventResponse | unknown): {
   overallValid: boolean;
   canPublish: boolean;
   totalErrors: number;
   sectionSummaries: Record<string, { valid: boolean; errorCount: number; errors: string[] }>;
 } {
   // Early return if event is invalid
-  if (!event || !event.id || !event.eventType) {
+  const eventObj = event as Record<string, unknown>;
+  if (!event || !eventObj.id || !eventObj.eventType) {
     return {
       overallValid: false,
       canPublish: false,
@@ -294,8 +296,8 @@ export function getValidationSummary(event: any): {
   });
 
   // Add sections that might not have errors but exist in the event
-  if (event.sections) {
-    Object.keys(event.sections).forEach(section => {
+  if (eventObj.sections) {
+    Object.keys(eventObj.sections as Record<string, unknown>).forEach(section => {
       if (!sectionSummaries[section]) {
         sectionSummaries[section] = {
           valid: true,

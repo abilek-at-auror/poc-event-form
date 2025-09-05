@@ -2,10 +2,11 @@ import { Card } from "@aurornz/lumos/Card";
 import { AtomicInput } from "../ui/AtomicInput";
 import { AtomicTextarea } from "../ui/AtomicTextarea";
 import { AtomicSelect } from "../ui/AtomicSelect";
+import type { EventMetadata } from "../../generated/events/eventFormsAPI.schemas";
 
 interface EventMetadataSectionProps {
   eventId: string;
-  metadata: any;
+  metadata?: EventMetadata;
 }
 
 const priorityOptions = [

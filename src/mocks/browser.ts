@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { setupWorker } from 'msw/browser';
 import {
   getGetEventTypesEventTypeConfigMockHandler,
@@ -59,8 +60,8 @@ const handlers = [
   }),
   
   // Custom handlers with proper data structure
-  getPostEventsMockHandler((info) => {
-    const body = info.request.body as any;
+  getPostEventsMockHandler(async (info) => {
+    const body = await info.request.json() as any;
     return {
       id: `event-${Date.now()}`,
       eventType: body.eventType,
